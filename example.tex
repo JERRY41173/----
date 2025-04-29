@@ -269,7 +269,7 @@ RAG技术栈也越加丰富。LangChain和LLamalndex等大模型框架已经支�
 
 3.风格迁移模块：该模块实现基于prompt的风格迁移技术，提供预定义的风格和用户自定义风格。
 
-4.决策参考模块：该模块提供成本定价模型、盈亏平衡定价和第一价格密封拍卖算法等决策，为用户提供决策参考。
+4.决策参考模块：该模块提供成本定价模型等决策，为用户提供决策参考。
 
 5.后期处理模块：该模块对生成的标书内容进行校对、格式调整和优化，以文件的格式输出。
 
@@ -311,7 +311,7 @@ RAG技术栈也越加丰富。LangChain和LLamalndex等大模型框架已经支�
     \caption{将用户输入转化为查询语句，先通过向量检索得到初始文本块，再搜寻向量节点形成完整图}\label{}
 \end{figure}
 
-语句转化：将用户上输入的自然语言语句转化为知识图谱查询语句。\par
+文本向量化：将用户输入转化为向量信息。\par
 向量检索：从全局索引（即向量信息）中检索找到初始文本块。\par
 图检索：根据初始文本块在相应的节点中查询邻居节点路径。\par
 返回结果：将检索到的图输出。
@@ -364,16 +364,16 @@ RAG技术栈也越加丰富。LangChain和LLamalndex等大模型框架已经支�
 资历库存储以JSON格式，结构如下：
 
 \begin{verbatim}
-{
-    "id": "string",
-    "name": "string",
-    "type": "string",
-    "file\_path": "string",
-    "properties": {
-        "key1": "value1",
-        "key2": "value2"
+    {
+        "id": "string",
+        "name": "string",
+        "type": "string",
+        "file\_path": "string",
+        "properties": {
+            "key1": "value1",
+            "key2": "value2"
+        }
     }
-}
 \end{verbatim}
 
 % #endregion
@@ -426,108 +426,191 @@ RAG技术栈也越加丰富。LangChain和LLamalndex等大模型框架已经支�
 % #endregion
 \xmusection{决策参考}{}
 % #region
+此处的决策参考主要指报价部分的生成。招标文件的报价部分较为复杂，
+《中国国家标准GB50500-2013：建设工程工程量清单计价规范》
+（后称“规范”）中规定了“工程量清单计价”和其它计价规范。
+“规范”指出，工程量清单应由招标人依据国家标准、招标文件、设计文件以及施工现场实际情况编制，
+因此决策参考模块主要功能为工程量清单标价。
+
+根据用户输入的额外提示信息（工程量清单的项目）进行方案库RAG检索，
+如果得到符合预设估价公式中的数值，则返回数值和来源，
+如果没有预设公式中的数值，由LLM给出数值并标注来自AI生成。
+
+价格预估使用成本定价模型：
+\begin{equation}
+    % \lim_{x\to0}\frac{\displaystyle{\int_{\sin x}^x\sqrt{3+t^2}\,\mathrm{d}t}}{x(e^{x^2}-1)}
+    P = C (1+r)
+\end{equation}
+
+其中C为成本，r为利润率，P为报价。
 
 % #endregion
 \xmusection{后期处理}{}
 % #region
-
+后期处理模块负责对生成的标书进行格式调整并生成文件。
+将生成的标书目录和正文内容合并为一个完整的标书文档，给定格式后，生成为文件。
 % #endregion
 \xmuchapter{系统实现与实验}{}
-    \xmusection{系统开发环境与工具}{}
-        \xmusubsection{系统环境}{}
-        \begin{itemize}
-            \item 操作系统：Ubuntu 22.04
-            \item Python版本：3.8
-            \item 依赖库：deepseek、fastapi、uvicorn、pydantic、pymongo、neo4j
-        \end{itemize}
-        \xmusubsection{开发工具}{}
-        \begin{itemize}
-            \item IDE：VSCode
-            \item 版本控制：Git
-            \item 文档编写：Markdown
-        \end{itemize}
-        \xmusubsection{系统框架}{}
-        \begin{itemize}
-            \item 前端框架：Vue.js
-            \item 后端框架：FastAPI
-            \item 数据存储：MongoDB、neo4j
-        \end{itemize}
-    \xmusection{系统功能实现}{}
-        \xmusubsection{方案库(知识图谱)}{}
-        使用neo4j存储知识图谱。neo4j是一个图数据库，使用cipher语句进行数据存储和查询。\par
-        后端使用neo4j-graphrag库和neo4j库进行知识图谱操作。
-        neo4j库用于连接到neo4j进行基本数据操作。
-        neo4j-graphrag库是neo4j提供的知识图谱框架库，用于实现文件解析和检索支持。
-        文件解析过程中，文本向量化使用阿里百炼text-embedding-v3模型，向量维度为1024维，
-        实体和关系提取使用deepseek-chat模型。
-
-        前端使用阿里g6图可视化引擎。
-        该引擎提供了图的绘制、布局、分析、交互、动画等基础的图可视化能力。
-
-        后端api定义：
-        \begin{itemize}
-            \item POST /api/upload：
-        \end{itemize}
-
-        测试样例：(待修改)
+\xmusection{系统开发环境与工具}{}
+    \xmusubsection{系统环境}{}
+    \begin{itemize}
+        \item 操作系统：Ubuntu 22.04
+        \item Python版本：3.12.3
+    \end{itemize}
+    \xmusubsection{系统框架}{}
+    \begin{itemize}
+        \item 前端框架：Vue.js
+        \item 后端框架：FastAPI
+        \item 数据存储：MongoDB、neo4j
+    \end{itemize}
+    \xmusubsection{开发工具}{}
+    \begin{itemize}
+        \item 前端开发工具：IDEA、vite
+        \item 后端开发工具：visual studio code
+    \end{itemize}
+\xmusection{系统功能实现}{}
+    \xmusubsection{方案库(知识图谱)}{}
+    使用neo4j存储知识图谱。
+    neo4j是一个图数据库，使用cipher语句进行数据存储和查询。\par
+    后端使用neo4j-graphrag库和neo4j库进行知识图谱操作。
+    neo4j库用于连接到neo4j进行基本数据操作。
+    neo4j-graphrag库是neo4j提供的知识图谱框架库，用于实现文件解析和检索支持。
+    文件解析过程中，文件转文本使用Langchian的Unstructured库
+    文本向量化使用阿里百炼text-embedding-v3模型，向量维度为1024维，
+    实体和关系提取使用deepseek-chat模型。
+    检索支持过程中，文本向量化同样使用阿里百炼text-embedding-v3模型
+    
+    \begin{figure}[!htb]
+        \centering
+        \includegraphics[width=38em]{grapheg.png}\\
+        \caption{
         "The son of Duke Leto Atreides and the Lady Jessica, Paul is the heir of House "
         "Atreides, an aristocratic family that rules the planet Caladan."
-        \begin{figure}[!htb]
-            \centering
-            \includegraphics[width=38em]{grapheg.png}\\
-            \caption{文段生成的知识图谱，0节点为文本块}\label{}
-        \end{figure}
+        文段生成的知识图谱，0节点为文本块
+        }\label{}
+    \end{figure}
 
-        \xmusubsection{招标需求识别模块}{}
-        % 定义招标需求的结构化数据模型，使用deepseek api进行招标需求识别。
-        % 定义Chapter、Section、Subsection数据模型，使用pydantic进行数据验证。
-        % 利用langchain结构化输出模型，将大模型输出转化为结构化数据。
-        % 后端api使用fastapi实现，前端使用axios进行数据交互。
-        % api定义：
-        % \begin{itemize}
-        %     \item POST /api/identify：识别招标需求
-        %     \item GET /api/chapters：获取章节列表
-        %     \item GET /api/sections：获取节列表
-        %     \item GET /api/subsections：获取小节列表
-        % \end{itemize}
-        \xmusubsection{标书目录生成模块}{}
-    %     使用deepseek-chat模型生成目录。
-    %     \begin{itemize}
-    %         \item 目录生成：根据招标需求和评分标准，生成“章-节-小节”固定格式的目录。
-    %         \item 目录保存：将生成的目录保存为结构化数据，以便后续使用。
-    %         \item 目录审核：用户对生成的目录进行审核和修改，并提供反馈信息。
-    %     \end{itemize}
-    %     \xmusubsection{标书正文生成模块}{}
-    %     使用方案库后端作检索增强，使用deepseek-chat模型生成正文。
-    %     \begin{itemize}
-    %         \item 目录生成：根据招标需求和评分标准，生成“章-节-小节”固定格式的目录。
-    %         \item 目录保存：将生成的目录保存为结构化数据，以便后续使用。
-    %         \item 目录审核：用户对生成的目录进行审核和修改，并提供反馈信息。
-    %     \end{itemize}
-    %     \xmusubsection{风格迁移模块}{}
-    %     在生成正文时，根据用户提供的示例文本或描述性提示，选择合适的风格迁移方法（基于prompt或基于LoRA），对生成的标书内容进行风格迁移。
-    %     api定义：
-    %     \begin{itemize}
-    %         \item POST /api/style-transfer：风格迁移
-    %         \item GET /api/styles：获取可用的风格列表
-    %     \end{itemize}
-    %     \xmusubsection{决策参考模块}{}
-    %     在标书生成报价部分，使用成本定价模型、盈亏平衡定价和第一价格密封拍卖算法等决策参考功能，辅助用户进行投标决策。
-    %     \xmusubsection{后期处理模块}{}
-    %     对生成的标书内容进行校对、格式调整和优化，确保标书的准确性和专业性。
-    %     \xmusubsection{模板管理模块}{}
-    %     支持用户自定义和保存标书模板，以便于未来的标书撰写。
-    % \xmusection{系统测试}{}
-    %     \xmusubsection{测试方法}{}
-    %     \xmusubsection{测试结果}{}
+    前端使用阿里g6图可视化引擎。
+    该引擎提供了图的绘制、布局、分析、交互、动画等基础的图可视化能力。
+
+    \xmusubsection{资历库和素材库}{}
+    资历库和素材库使用MongoDB存储。MongoDB是一个NoSQL数据库，契合资历库与素材库存储需求。
+    资历库和素材库的常规增删改查在后端使用pymongo进行数据操作。
+    资历库和素材库RAG由like语句模糊查询实现。
+    将mongoDB的模糊查询封装为langchain工具类，由LLM提取若干关键词进行查询。
+    
+    前端使用vuetify进行渲染。
+    \begin{figure}[!htb]
+        \centering
+        \includegraphics[width=38em]{grapheg.png}\\
+        \caption{资历库和素材库前端展示
+        }\label{}
+    \end{figure}
+
+    \xmusubsection{招标需求识别模块}{}
+    使用deepseek-chat模型进行招标需求识别。结构化返回值定义如下：
+    \begin{verbatim}
+    from pydantic import BaseModel, Field
+    class Requirements(BaseModel):
+        project_requirements: str = Field(
+            description="project_requirements")
+        scoring_criteria: str = Field(
+            description="scoring_criteria")
+    \end{verbatim}
+
+    \begin{figure}[!htb]
+        \centering
+        \includegraphics[width=38em]{grapheg.png}\\
+        \caption{招标需求识别模块前端
+        }\label{}
+    \end{figure}
+
+    \xmusubsection{标书目录生成模块}{}
+    使用deepseek-chat模型进行标书目录生成。结构化返回值定义如下：
+    \begin{verbatim}
+    from pydantic import BaseModel, Field
+    class Chapter(BaseModel):
+        title: str = Field(description="章节标题")
+        sections: Optional[list["Section"]] = Field(
+            default_factory=list,description="一级子目录列表")
+    
+    class Section(BaseModel):
+        title: str = Field(description="一级子目录标题")
+        subsections: Optional[list["Subsection"]] = Field(
+            default_factory=list,description="二级子目录列表")
+        
+    class Subsection(BaseModel):
+        title: str = Field(description="二级子目录标题")
+        content: Optional[list["text"]]  = Field(
+            default_factory=str,description="正文列表")
+    \end{verbatim}
+
+    \begin{figure}[!htb]
+        \centering
+        \includegraphics[width=38em]{grapheg.png}\\
+        \caption{标书目录生成模块前端
+        }\label{}
+    \end{figure}
+
+    \xmusubsection{标书正文生成模块}{}
+    使用方案库后端作检索增强，使用deepseek-chat模型生成正文。
+    生成的正文内容结构化返回值定义如下：
+    \begin{verbatim}
+    class text(BaseModel):
+        content: str = Field(description="正文内容")
+        source: Optional[str] = Field(description="内容来源elementId")
+    \end{verbatim}
+
+    \begin{figure}[!htb]
+        \centering
+        \includegraphics[width=38em]{grapheg.png}\\
+        \caption{标书正文生成模块前端
+        }\label{}
+    \end{figure}
+
+    \xmusubsection{决策参考模块}{}
+    在标书生成报价部分，使用成本定价模型辅助用户进行投标决策。
+    生成的决策结构化返回值定义如下：
+    \begin{verbatim}
+    class price(BaseModel):
+        cost: Optional[int] = Field(description="预估的成本")
+        rate: Optional[int] = Field(description="预估的利润率")
+        cost_source: Optional[str] = Field(description="成本来源elementId")
+        rate_source: Optional[str] = Field(description="利润率来源elementId")
+    \end{verbatim}
+
+    \xmusubsection{后期处理模块}{}
+    使用docx库进行后期处理。使用预定义word格式的模板文档，利用占位符替换实现文件生成。
+
+    模板文档来自中华人民共和国标准施工招标文件（2007年版）
+
+    \begin{figure}[!htb]
+        \centering
+        \includegraphics[width=38em]{grapheg.png}\\
+        \caption{生成文档效果
+        }\label{}
+    \end{figure}
 \xmuchapter{总结与展望}{Conclusion and Future Work}
-未来优化点：使用graphRAG的全局-社区-摘要模式
-尝试多种文本块节点的连接和存储方式
-知识图谱融合
-识别招标需求可以更细致
+本次设计实现的智能标书撰写系统，虽然功能上能够满足了标书撰写的基本需求，
+但对于标书生成的质量还有很大提示空间。
+此外，作为一个web应用，在性能优化上还有许多中间件可以采用。
 
-资历库素材库没做
-决策参考实现
+未来优化点：
+一是方案库构建部分，本次知识图谱的构建并没有充分考虑知识融合的问题，
+不同文件生成的知识图谱之间完全孤立，而单个文件不同文本块的知识图谱实体和关系则直接合并。
+对于知识融合的方式可以学习更多无监督的方法
+
+二是方案库检索部分，本次RAG部分使用向量检索实现节点的首次检索，规避了cipher语句的转化问题，
+在检索到的首个节点孤立时，会退化为传统向量检索。
+可以学习实现微软graphRAG的全局-社区-摘要模式，实现理论上更加有效的检索。
+
+三是识别招标需求可以更细致，需要结合更多实际生产中的招标文档，总结开发更有灵活性和普适性的招标需求识别方法。
+
+四是资历库和素材库查询使用关键词模糊检索进行了简化，mongodb的向量化查询可以实现传统意义上的RAG检索。
+
+最后，决策参考只实现了最简单的成本定价模型，
+该方案只适用于给定工程量清单进行标价，实际投标定价情况更加复杂，
+可能存在多轮报价、竞争报价，涉及到复杂的经济学、博弈论知识。想要做到高可用的决策参考需要复杂的设计开发。
 % #region
 % \xmuchapter{使用说明}{Introduction}
 % \xmusection{环境配置}{Environment Setup}
@@ -733,6 +816,23 @@ RAG技术栈也越加丰富。LangChain和LLamalndex等大模型框架已经支�
 %%%%%%%% 附录 %%%%%%%%
 
 \begin{appendix}
+    \xmusection{接口api}{Tables}
+    \begin{table}[!htb]
+        \centering
+        \caption{接口api}
+        \label{}
+        \begin{tabular}{|l|l|l|l|l|}
+            \hline
+            \bf\songti 参数 & \bf\songti 参数类型& \bf\songti 参数描述 & \bf\songti 备注 \\ \hline
+            id             & str         &                 &             \\ \hline
+            label               & str          &             &               \\ \hline
+            properties               & dict[str,Any]         &                 &               \\ \hline
+            embedding\_properties             & dict[str, list[float]] | None       &       &               \\ \hline
+        \end{tabular}
+    \end{table}
+
+    \xmusection{python环境}{Tables}
+    \xmusection{前端环境}{Tables}
     % \xmusection{附表}{Tables}
     % 这里放一些附录的内容，例如表格或其他说明。如附表\ref{atable}。
     % \begin{table}[!htb]
@@ -799,7 +899,13 @@ RAG技术栈也越加丰富。LangChain和LLamalndex等大模型框架已经支�
 %%%%%%%% 致谢（默认在最后） %%%%%%%%
 
 \begin{acknowledgement}
-暂时不写
+本次毕业设计首先感谢我的导师罗晔老师，以及他组建的“《深度学习》学习小组”微信群。
+罗老师在每个阶段都能给出适时的指导，也不会给我很大压力。
+在论文选题开始时，罗老师指定了标书撰写这个领域，并且给出了大致的研究方法。
+寒假期间，学习小组中给我们分享了深度学习的大量资料，这为我们后续的设计开发奠定了良好的基础。
+老师推荐的langchian框架，节约了预期大量LLM交互的代码量，极大地减轻了开发压力。
+
+其次感谢我的同学们，尤其是曾经在学生会共事的同学们。在我感到压力时，是他们给我鼓励和支持。
 \end{acknowledgement}
 
 \end{document}
