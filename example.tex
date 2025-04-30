@@ -1,5 +1,6 @@
-%!TEX program = xelatex
 \documentclass{xmu}
+\pgfplotsset{compat=1.18}
+\sloppy
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%    XMU Undergraduates Thesis Template    %%%%%%%%
 %%%%%%%%             Made by: F5Soft              %%%%%%%%
@@ -50,24 +51,41 @@
 \pubdate{二〇二五年四月三十日}
 
 % 关键词
-\keywords{检索增强生成；大语言模型；标书}
-{Undergraduate Thesis; LaTeX; Xiamen University}
+\keywords{智能标书撰写；RAG 技术；大语言模型；知识图谱；招投标；决策参考}
+{Intelligent bid document writing; RAG technology; Large Language Models; Knowledge graphs; Bidding and tendering; Decision-making reference}
 
 % 生成封面、承诺书
 \maketitle
-
-% 如果想要将致谢放在最前，可将最后的致谢移动至此
 
 %%%%%%%% 摘要 %%%%%%%%
 
 % 中文摘要
 \begin{abstract}
-啥也没写
+随着招投标行业的数字化转型加速，传统的标书撰写方式大量依赖人工，存在较多重复性工作。
+本文提出了一种基于 RAG（Retrieval-Augmented Generation，检索增强生成）技术的智能标书撰写系统，
+旨在通过结合大语言模型（LLM）和外部知识库，实现高效、高质量的标书自动生成。
+系统通过解析招标文件，提取关键信息，并利用知识图谱和向量检索技术，为标书撰写提供精准的知识支持。
+此外，系统还具备风格迁移和决策参考功能，能够满足不同用户的个性化需求。
+未来，我们将进一步优化知识图谱的构建和检索机制，提升系统的智能化水平，以更好地服务于招投标行业。
 \end{abstract}
 
 % 英文摘要
 \begin{enabstract}
-empty
+With the accelerated digital transformation of the bidding and tendering industry, 
+traditional methods of bid document writing rely heavily on manual labor, 
+resulting in a significant amount of repetitive work. 
+This paper proposes an Intelligent Bid Document Writing System 
+based on RAG (Retrieval-Augmented Generation) technology. 
+The system aims to achieve efficient and high-quality automatic bid document generation 
+by integrating Large Language Models (LLMs) with external knowledge bases. 
+By parsing tender documents and extracting key information, 
+the system leverages knowledge graphs and vector-based retrieval techniques 
+to provide precise knowledge support for bid writing. Additionally, 
+the system features style transfer and decision-making reference capabilities, 
+which can meet the personalized needs of different users. In the future, 
+we will further optimize the construction and retrieval mechanisms of knowledge graphs 
+to enhance the intelligence level of the system 
+and better serve the bidding and tendering industry.
 \end{enabstract}
 
 % 生成中英文目录
@@ -75,7 +93,7 @@ empty
 
 %%%%%%%% 正文 %%%%%%%%
 \xmuchapter{绪论}{Introduction}
-\xmusection{招投标行业数字化发展现状与挑战}{}
+\xmusection{招投标行业数字化发展现状与挑战}{Development Status and Challenges of Digitalization in the Bidding and Tendering Industry}
 % #region
 随着我国经济社会的快速发展，招投标行业作为市场经济的重要组成部分，其作用日益凸显。
 招投标行业的健康发展对于促进经济增长、提高市场竞争力、维护社会公平正义具有重要意义。
@@ -84,17 +102,17 @@ empty
 目前，在国家进一步“放管服”、加速推进“优化营商环境”的大背景下，招标采购加速向信息化、数字化发展。\cite{zhaotoubiaoxianzhuang}
 一方面，招标采购交易全流程逐渐实现网络信息化、数字化:2024年全国电子招投标平台日均处理量突破100万单，AI评标系统在中部六省试点准确率达92\%\cite{report}。
 另一方面，招标投标的服务模式从单一、程序性服务向复合型、综合性咨询服务转型。
-\par
+
 \begin{figure}[!htb]
     \centering
     \includegraphics[width=30em]{专项公共服务.png}\\
-    \caption{中国招标投标公共服务平台已经支持CA互认和远程异地评标和评标专家库共享}\label{xmulogo}
+    \caption{中国招标投标公共服务平台已经支持CA互认和远程异地评标和评标专家库共享}\label{zhuanjia}
 \end{figure}
 目前，地方政府公共资源交易平台功能日臻完善，各大央企集团大多已建成使用招标采购电子交易平台，行业领域内招标采购业务活动基本实现全流程在线化，
 目前正在加快向数字化和智能化方向转型，AI应用基础良好。
 总体而言，与招标人相比，投标人对人工智能技术应用驱动力不足，在功能开发和应用方面均不如招标人及资源交易中心广泛和深入。
 投标人也已经逐步意识到大语言模型对招标采购行业的深远影响，目前已经有投标人使用GPT编制投标文件部分章节，如施工组织方案。\cite{AIzhanwang}
-\par
+
 %#endregion
 % #region
 从开发者的角度来看，开发为投标人服务的智能工具存在以下难点：
@@ -102,26 +120,26 @@ empty
 2.在投标过程中，投标人需要综合市场、企业、客户、竞争对手等多方面信息进行决策，仅仅依靠自然语言处理技术或简单的检索技术难以提供有参考价值的决策建议。
 3.招标采购行业涉及大量的商业机密和敏感信息，尤其是对于提供SAAS（Software as a Service，软件即服务）的服务商而言，在技术上和社会信任上都需要长期努力。
 % #endregion
-\xmusection{RAG技术}{}
+\xmusection{RAG技术}{RAG Technology}
 % #region
-\xmusubsection{RAG简介}{}
+\xmusubsection{RAG简介}{Introduction to RAG}
 RAG（Retrieval-Augmented Generation，检索增强生成）
 是一种连接外部数据源以增强大语言模型（LLM）输出质量的技术。
 这种技术帮助 LLM 访问私有数据或特定领域的数据，并解决幻觉问题。
 因此，RAG 已被广泛用于许多通用的生成式 AI（GenAI）应用中，
 如 AI 聊天机器人和推荐系统。
 RAG技术一般可以划分为信息检索和生成两个阶段。
-\par
+
 在信息检索阶段，系统解析用户输入的文本，
 从构建的专业知识库中，通过向量检索、图检索等方式筛选相关程度最高的文本片段。
 在生成阶段，模型将检索到的文档片段作为上下文与用户输入的文本一起输入到seq2seq模型中，得到输出。
-\par
+
 \begin{figure}[!htb]
     \centering
     \includegraphics[width=30em]{RAG.png}\\
-    \caption{RAG技术基本原理}\label{xmulogo}
+    \caption{RAG技术基本原理}\label{ragyuanli}
 \end{figure}
-\xmusubsection{RAG技术在智能标书撰写工具中的应用潜力}{}
+\xmusubsection{RAG技术在智能标书撰写工具中的应用潜力}{Application Potential of RAG in Intelligent Bid Document Writing Tools}
 标书撰写的过程可以分解为招标要求理解和标书内容生成两个任务，
 传统的大语言模型能够满足一般的文本理解和内容生成任务，但受限于模型的训练数据，
 对于标书撰写这样涉及专业知识和企业信息以及多种综合因素的复杂任务，存在一定局限性。
@@ -136,7 +154,7 @@ RAG模型能够更精准地理解招标文件的核心要求，并利用相关�
 3、提供决策参考：RAG模型可以检索市场数据、竞争对手信息等外部知识，结合预设的竞价、博弈模型，
 为标书撰写提供有价值的决策参考。
 % #endregion
-\xmusection{本文工作}{}
+\xmusection{本文工作}{Work of This Thesis}
 % #region
 本文工作主要包括以下几个方面：
 分析现有的智能标书撰写工具，设计基于RAG技术的智能标书撰写系统；
@@ -145,29 +163,29 @@ RAG模型能够更精准地理解招标文件的核心要求，并利用相关�
 实现基于Prompt的风格迁移功能，为用户提供预设或自定义的风格选项；
 实现“数据检索-工具调用-输出决策”的决策参考工作流；
 % #endregion
-\xmusection{论文结构}{}
+\xmusection{论文结构}{Structure of the Thesis}
 % #region
 第一章：
 本章介绍招投标行业的数字化发展现状，阐述为投标人服务的智能工具的开发难点。
 随后，简要介绍RAG技术并分析标书撰写中的应用潜力。
 接着，概述本文的主要工作内容，和论文的整体结构。
-\par
+
 第二章：
 本章介绍传统的招投标方法和现有的智能标书撰写工具，分析其优缺点。
 详细回顾RAG技术的相关研究进展，其中重点介绍基于知识图谱的RAG技术。
-\par
+
 第三章：
 本章将对智能标书撰写系统进行需求分析。随后阐述系统架构设计。
-\par
+
 第四章：
 本章将描述系统的开发环境和工具，详细介绍系统功能的具体实现。
-\par
+
 第五章：
 本章将总结本文的主要研究成果，并讨论系统的优势和可能的改进方向。
 % #endregion
-\xmuchapter{相关工作}{}
-\xmusection{招投标领域的研究现状}{}
-\xmusubsection{传统投标方法}{}
+\xmuchapter{相关工作}{Related Work}
+\xmusection{招投标领域的研究现状}{Research Status in the Bidding and Tendering Field}
+\xmusubsection{传统投标方法}{Traditional Bidding Methods}
 % #region
 一般标书的结构分为商务部分、技术部分和报价部分（但招标文件特殊要求格式除外）。
 
@@ -177,25 +195,25 @@ RAG模型能够更精准地理解招标文件的核心要求，并利用相关�
 其中技术偏离表需要标注正偏离、负偏离、无偏离；如投标产品的技术指标优于招标要求即为正偏离，反之为负偏离，符合招标要求即为无偏离；
 
 报价部分，一般包括报价一览表、分项报价表、投标函、投标承诺书、投标单位名称、投标代表签字、法人代表签字等，要严格按照招标文件要求及顺序编写。
-\par
+
 标书编写可以分为初步目录编排和后期目录编排两种方式。
 初次目录编排：根据招标文件的要求，初步编写投标文件目录；为了方便收集投标书的资料。对评分点、控标点、优势应在初步目录中标注，其目的为了让标书制作者重视该部分文档。
 后期目录编排：按事先拟定好的投标文件目录，对正文内容的标题设置为标题1、标题2、标题3、标题4等，然后自动生成投标文件的目录。
-\par
+
 在标书电子版制作完成后，参与人员需要进行交叉检查，对错误的地方进行指正修改；需要重点审查的地方有：
 正本制作正副本内容一致；
 字体、格式是否统一；
 审查报价产品名细是否符合招标产品需求名细（包括产品型号和数量），分项（分包）报价是否符合和正确；
 审查报价表中的分报价和总报价的计算、大小写是否正确，报价表、投标一览表、投标函中的报价大小写是否一致；
 审查开标文件书写格式是否与招标方的要求一致；
-\par
+
 在标书打印完成后，需签字处完成签字盖章，最终审查无误后，进行密封。
-\par
+
 传统的标书编写方法依赖人工操作，为确保标书的质量和合规性，投标团队需要投入大量的时间和精力进行信息收集、内容撰写和格式调整，存在较多重复性、繁琐性的任务。
 开发智能化的标书撰写工具，将投标工作中的重复性和繁琐性任务自动化，有望提高标书编写的效率和准确性。
 % 随着招投标行业的数字化转型，越来越多的企业开始寻求智能化的解决方案，以提高标书编写的效率和质量。
 % #endregion
-\xmusubsection{现有智能标书撰写工具}{}
+\xmusubsection{现有智能标书撰写工具}{Existing Intelligent Bid Document Writing Tools}
 % #region
 目前，市面上已经出现了一批智能标书撰写工具，如链企标书、星火投标等。
 这些工具的开发背景各不相同，部分由传统招标采购行业的专业公司开发，部分由互联网科技巨头或新兴的互联网创业公司开发。
@@ -228,7 +246,7 @@ RAG模型能够更精准地理解招标文件的核心要求，并利用相关�
 标书中包含必不可少的报价部分，现有工具几乎不能给出有可靠依据的报价。
 
 % #endregion
-\xmusubsection{RAG技术研究现状}{}
+\xmusubsection{RAG技术研究现状}{Research Status of RAG Technology}
 % #region
 RAG技术最早由Facebook AI Research提出，
 随后在任务规划、推理检索、多模态等研究方向进一步发展。
@@ -249,9 +267,9 @@ RAG技术栈也越加丰富。LangChain和LLamalndex等大模型框架已经支�
 目前也已经出现多个成熟的专用RAG框架，如Haystack、RAGFlow。
 
 % #endregion
-\xmuchapter{智能标书撰写系统设计}{}
-\xmusection{需求分析}{}
-\xmusection{系统架构设计}{}
+\xmuchapter{智能标书撰写系统设计}{Design of the Intelligent Bid Document Writing System}
+
+\xmusection{系统架构设计}{System Architecture Design}
 % #region
 
 系统架构主要分为三个层次：
@@ -274,9 +292,9 @@ RAG技术栈也越加丰富。LangChain和LLamalndex等大模型框架已经支�
 5.后期处理模块：该模块对生成的标书内容进行校对、格式调整和优化，以文件的格式输出。
 
 % #endregion
-\xmusection{企业信息管理}{}
+\xmusection{企业信息管理}{Enterprise Information Management}
 
-\xmusection{方案库（知识图谱）}{}
+\xmusection{方案库（知识图谱）}{Solution Library (Knowledge Graph)}
 % #region
 基于知识图谱的方案库，作为将用户上传的文件解析为可以用于RAG的结构化数据的模块，
 需要实现文件解析和检索支持两方面的功能。
@@ -290,14 +308,14 @@ RAG技术栈也越加丰富。LangChain和LLamalndex等大模型框架已经支�
 \begin{figure}[!htb]
     \centering
     \includegraphics[width=38em]{pipline.png}\\
-    \caption{上传的文件解析为文本后，分块进行实体和关系提取，合并相同实体后存储为知识图谱}\label{}
+    \caption{上传的文件解析为文本后，分块进行实体和关系提取，合并相同实体后存储为知识图谱}\label{wenbwenjiexi}
 \end{figure}
 
-文档解析：将用户上传的文件解析为文本。\par
+文档解析：将用户上传的文件解析为文本。
 文本分块：过长的文本会降低文本中早期信息的召回率\cite{Long}，
-因此需要将文件提取的文本进一步分块。\par
-实体和关系提取：利用LLM提取文本块中的实体和关系信息。\par
-文本向量化：将文本块语义信息转化为向量信息，以便于后续检索。\par
+因此需要将文件提取的文本进一步分块。
+实体和关系提取：利用LLM提取文本块中的实体和关系信息。
+文本向量化：将文本块语义信息转化为向量信息，以便于后续检索。
 知识图谱构建：将文本块、实体作为节点，关系作为边存储在知识图谱中。
 实体通过“FROM\_CHUNK”关系连接到所属的文本块。
 文本块节点之间通过“NEXT\_CHUNK”关系作为边连接。
@@ -308,12 +326,12 @@ RAG技术栈也越加丰富。LangChain和LLamalndex等大模型框架已经支�
 \begin{figure}[!htb]
     \centering
     \includegraphics[width=38em]{search.png}\\
-    \caption{将用户输入转化为查询语句，先通过向量检索得到初始文本块，再搜寻向量节点形成完整图}\label{}
+    \caption{将用户输入转化为查询语句，先通过向量检索得到初始文本块，再搜寻向量节点形成完整图}\label{jiansuo}
 \end{figure}
 
-文本向量化：将用户输入转化为向量信息。\par
-向量检索：从全局索引（即向量信息）中检索找到初始文本块。\par
-图检索：根据初始文本块在相应的节点中查询邻居节点路径。\par
+文本向量化：将用户输入转化为向量信息。
+向量检索：从全局索引（即向量信息）中检索找到初始文本块。
+图检索：根据初始文本块在相应的节点中查询邻居节点路径。
 返回结果：将检索到的图输出。
 
 知识图谱参数定义如下:
@@ -349,7 +367,7 @@ RAG技术栈也越加丰富。LangChain和LLamalndex等大模型框架已经支�
 
 
 % #endregion
-\xmusection{资历库和素材库}{}
+\xmusection{资历库和素材库}{Qualification Library and Material Library}
 % #region
 资历库存储企业的合同、授权书、三证等资质信息。素材库存储其它撰写标书涉及的信息。
 资历库需要能够存储和检索企业的资质信息。
@@ -377,8 +395,8 @@ RAG技术栈也越加丰富。LangChain和LLamalndex等大模型框架已经支�
 \end{verbatim}
 
 % #endregion
-\xmusection{标书内容生成}{}
-\xmusubsection{识别招标需求}{}
+\xmusection{标书内容生成}{Bid Document Content Generation}
+\xmusubsection{识别招标需求}{Identifying Tender Requirements}
 % #region
 该模块负责提取招标文件中的关键信息，用于指导后续的标书撰写。
 该模块分为两步骤：文件解析和文本解析。
@@ -393,7 +411,7 @@ RAG技术栈也越加丰富。LangChain和LLamalndex等大模型框架已经支�
 评分标准包括商务评分、技术评分、报价评分等信息。
 
 % #endregion
-\xmusubsection{生成标书目录}{}
+\xmusubsection{生成标书目录}{Generating Bid Document Table of Contents}
 % #region
 该模块负责生成标书的目录。根据“项目概况”和“评分标准”两类信息，生成标书目录（尚未引入RAG）。
 实际生成过程中，用户可能需要调整目录的顺序和内容，为保证灵活性，我们采用逐章节生成的方式。
@@ -405,7 +423,7 @@ RAG技术栈也越加丰富。LangChain和LLamalndex等大模型框架已经支�
 为方便处理，我们将标书的框架固定为“章-节-小节”三级标题形式。每个章可对应多个节，每个节可对应多个小节。
 在不进行任何生成时下，用户可以在前端对目录进行任意调整修改。
 % #endregion
-\xmusubsection{生成标书正文}{}
+\xmusubsection{生成标书正文}{Generating Bid Document Body}
 % #region
 该模块负责生成标书正文。每个小节根据全局信息、当前“章-节-小节”三级标题进行基于RAG的生成。
 初始生成时，仅通过方案库进行RAG检索。LLM的输出为“内容”“引用列表”固定格式。
@@ -418,13 +436,13 @@ RAG技术栈也越加丰富。LangChain和LLamalndex等大模型框架已经支�
 风格化生成：用户可以覆盖全局的风格化设置，选择当前小节的风格化选项。
 
 % #endregion
-\xmusection{风格迁移}{}
+\xmusection{风格迁移}{Style Transfer}
 % #region
 该模块负责调整生成标书风格。
 风格迁移采用基于Prompt的方式，将预设文字或用户自定义的文字作为提示词，
 指导LLM生成符合特定风格的内容。
 % #endregion
-\xmusection{决策参考}{}
+\xmusection{决策参考}{Decision-Making Reference}
 % #region
 此处的决策参考主要指报价部分的生成。招标文件的报价部分较为复杂，
 《中国国家标准GB50500-2013：建设工程工程量清单计价规范》
@@ -445,33 +463,33 @@ RAG技术栈也越加丰富。LangChain和LLamalndex等大模型框架已经支�
 其中C为成本，r为利润率，P为报价。
 
 % #endregion
-\xmusection{后期处理}{}
+\xmusection{后期处理}{Post-Processing}
 % #region
 后期处理模块负责对生成的标书进行格式调整并生成文件。
 将生成的标书目录和正文内容合并为一个完整的标书文档，给定格式后，生成为文件。
 % #endregion
-\xmuchapter{系统实现与实验}{}
-\xmusection{系统开发环境与工具}{}
-    \xmusubsection{系统环境}{}
+\xmuchapter{系统实现与实验}{System Implementation and Experiments}
+\xmusection{系统开发环境与工具}{System Development Environment and Tools}
+    \xmusubsection{系统环境}{System Environment}
     \begin{itemize}
         \item 操作系统：Ubuntu 22.04
         \item Python版本：3.12.3
     \end{itemize}
-    \xmusubsection{系统框架}{}
+    \xmusubsection{系统框架}{System Framework}
     \begin{itemize}
         \item 前端框架：Vue.js
         \item 后端框架：FastAPI
         \item 数据存储：MongoDB、neo4j
     \end{itemize}
-    \xmusubsection{开发工具}{}
+    \xmusubsection{开发工具}{Development Tools}
     \begin{itemize}
         \item 前端开发工具：IDEA、vite
         \item 后端开发工具：visual studio code
     \end{itemize}
-\xmusection{系统功能实现}{}
-    \xmusubsection{方案库(知识图谱)}{}
+\xmusection{系统功能实现}{Implementation of System Functions}
+    \xmusubsection{方案库(知识图谱)}{Solution Library (Knowledge Graph)}
     使用neo4j存储知识图谱。
-    neo4j是一个图数据库，使用cipher语句进行数据存储和查询。\par
+    neo4j是一个图数据库，使用cipher语句进行数据存储和查询。
     后端使用neo4j-graphrag库和neo4j库进行知识图谱操作。
     neo4j库用于连接到neo4j进行基本数据操作。
     neo4j-graphrag库是neo4j提供的知识图谱框架库，用于实现文件解析和检索支持。
@@ -487,13 +505,13 @@ RAG技术栈也越加丰富。LangChain和LLamalndex等大模型框架已经支�
         "The son of Duke Leto Atreides and the Lady Jessica, Paul is the heir of House "
         "Atreides, an aristocratic family that rules the planet Caladan."
         文段生成的知识图谱，0节点为文本块
-        }\label{}
+        }\label{example}
     \end{figure}
 
     前端使用阿里g6图可视化引擎。
     该引擎提供了图的绘制、布局、分析、交互、动画等基础的图可视化能力。
 
-    \xmusubsection{资历库和素材库}{}
+    \xmusubsection{资历库和素材库}{Qualification Library and Material Library}
     资历库和素材库使用MongoDB存储。MongoDB是一个NoSQL数据库，契合资历库与素材库存储需求。
     资历库和素材库的常规增删改查在后端使用pymongo进行数据操作。
     资历库和素材库RAG由like语句模糊查询实现。
@@ -504,10 +522,10 @@ RAG技术栈也越加丰富。LangChain和LLamalndex等大模型框架已经支�
         \centering
         \includegraphics[width=38em]{grapheg.png}\\
         \caption{资历库和素材库前端展示
-        }\label{}
+        }\label{frontend}
     \end{figure}
 
-    \xmusubsection{招标需求识别模块}{}
+    \xmusubsection{招标需求识别模块}{Tender Requirement Identification Module}
     使用deepseek-chat模型进行招标需求识别。结构化返回值定义如下：
     \begin{verbatim}
     from pydantic import BaseModel, Field
@@ -522,10 +540,10 @@ RAG技术栈也越加丰富。LangChain和LLamalndex等大模型框架已经支�
         \centering
         \includegraphics[width=38em]{grapheg.png}\\
         \caption{招标需求识别模块前端
-        }\label{}
+        }\label{requirements}
     \end{figure}
 
-    \xmusubsection{标书目录生成模块}{}
+    \xmusubsection{标书目录生成模块}{Bid Document Table of Contents Generation Module}
     使用deepseek-chat模型进行标书目录生成。结构化返回值定义如下：
     \begin{verbatim}
     from pydantic import BaseModel, Field
@@ -549,10 +567,10 @@ RAG技术栈也越加丰富。LangChain和LLamalndex等大模型框架已经支�
         \centering
         \includegraphics[width=38em]{grapheg.png}\\
         \caption{标书目录生成模块前端
-        }\label{}
+        }\label{mulu}
     \end{figure}
 
-    \xmusubsection{标书正文生成模块}{}
+    \xmusubsection{标书正文生成模块}{Bid Document Body Generation Module}
     使用方案库后端作检索增强，使用deepseek-chat模型生成正文。
     生成的正文内容结构化返回值定义如下：
     \begin{verbatim}
@@ -565,21 +583,25 @@ RAG技术栈也越加丰富。LangChain和LLamalndex等大模型框架已经支�
         \centering
         \includegraphics[width=38em]{grapheg.png}\\
         \caption{标书正文生成模块前端
-        }\label{}
+        }\label{content}
     \end{figure}
 
-    \xmusubsection{决策参考模块}{}
+    \xmusubsection{决策参考模块}{Decision-Making Reference Module}
     在标书生成报价部分，使用成本定价模型辅助用户进行投标决策。
     生成的决策结构化返回值定义如下：
     \begin{verbatim}
     class price(BaseModel):
-        cost: Optional[int] = Field(description="预估的成本")
-        rate: Optional[int] = Field(description="预估的利润率")
-        cost_source: Optional[str] = Field(description="成本来源elementId")
-        rate_source: Optional[str] = Field(description="利润率来源elementId")
+        cost: Optional[int] = Field(
+            description="预估的成本")
+        rate: Optional[int] = Field(
+            description="预估的利润率")
+        cost_source: Optional[str] = Field(
+            description="成本来源elementId")
+        rate_source: Optional[str] = Field(
+            description="利润率来源elementId")
     \end{verbatim}
 
-    \xmusubsection{后期处理模块}{}
+    \xmusubsection{后期处理模块}{Post-Processing Module}
     使用docx库进行后期处理。使用预定义word格式的模板文档，利用占位符替换实现文件生成。
 
     模板文档来自中华人民共和国标准施工招标文件（2007年版）
@@ -588,7 +610,7 @@ RAG技术栈也越加丰富。LangChain和LLamalndex等大模型框架已经支�
         \centering
         \includegraphics[width=38em]{grapheg.png}\\
         \caption{生成文档效果
-        }\label{}
+        }\label{text}
     \end{figure}
 \xmuchapter{总结与展望}{Conclusion and Future Work}
 本次设计实现的智能标书撰写系统，虽然功能上能够满足了标书撰写的基本需求，
@@ -611,216 +633,35 @@ RAG技术栈也越加丰富。LangChain和LLamalndex等大模型框架已经支�
 最后，决策参考只实现了最简单的成本定价模型，
 该方案只适用于给定工程量清单进行标价，实际投标定价情况更加复杂，
 可能存在多轮报价、竞争报价，涉及到复杂的经济学、博弈论知识。想要做到高可用的决策参考需要复杂的设计开发。
-% #region
-% \xmuchapter{使用说明}{Introduction}
-% \xmusection{环境配置}{Environment Setup}
-% 首先，需要配置好LaTeX环境。这里推荐TeX Live + VSCode。
-% 其中TeX Live可访问{https://www.tug.org/texlive/}下载；
-% VSCode安装完成后需要再搜索安装LaTeX Workshop插件。
-% \xmusection{编译}{Compiling}
-% 环境配置完成后，可以从GitHub上下载本模版的代码\cite{template}。
-% 下载完成后，可尝试打开example.tex文件，点击右上角的绿色运行按钮进行编译。
-% 在macOS系统上，编译一般会失败，这是因为使用的pdflatex找不到对应中文字体的结果。
-% 可以进入左侧的LaTeX Workshop面板，选择Recipe为latexmk (xelatex)，点击运行，即可编译成功。
-% \xmusection{使用模版}{Use Templates}
-% 本模版根据《厦门大学本科毕业论文（设计）规范》\cite{xmuthesis}封装了大量格式设置等内容，
-% 使用时无需考虑各种格式指令，只需设置好章节标题，填充摘要、附录、参考文献、致谢等内容即可。
-% \xmusubsection{示例论文}{Example Paper}
-% example.tex文件内有详细的注释和使用示例，可以直接在该示例基础上修改。
-% 论文中的所有插图需统一放在figures文件夹内，并根据文件名来包含。
-% \xmusubsection{自定义模版}{Customization}
-% xmu.cls文件是模版文件，如果您具有排版强迫症，想和我一样对模版的细节进行微调，
-% 可以自己修改xmu.cls模版文件。模版文件中也提供了大量注释便于您进行修改。
-% 如果您认为修改的效果不错，可以在GitHub上\cite{template}发起Pull request贡献代码。
-% 您也可以发起Issue提出要添加的功能。
-% \par
-% 修改模版需要有一定的LaTeX基础，可以参考《LaTeX 2e完全学习手册》
-% \cite{latex2e}和《简单粗暴LaTeX》\cite{easylatex}中的内容进行修改。
-% \xmuchapter{使用示例}{Examples}
-% \xmusection{二级标题}{Section (English Ver.)}
-% 一级标题（章）总会另起一页。
-% \xmusubsection{三级标题}{Subsection (English Ver.)}
-% 通过xmuchapter、xmusection、xmusubsection指令指定一级（章）、二级（节）、三级（小节）标题。
-% 因为英文目录的需要，这三个指令均接收两个参数，
-% 第一个参数为中文的标题内容，第二个参数为英文的标题内容。
-% \subsubsection{四级标题}
-% 如果需要四级标题的话，不会出现在目录内。
-% \xmusection{图表}{Figures and Tables}
-% \xmusubsection{插图}{Figures}
-% 图片编号均按照章节号-图片号进行编号。
-% 可通过caption指令设置图片小标题，
-% 可通过label和ref指令引用图片编号。
-% 厦门大学校徽如下图 \ref{xmulogo} 所示。
-% \begin{figure}[!htb]
-%     \centering
-%     \includegraphics[width=12em]{xmu-logo-icon.jpg}\\
-%     \caption{厦门大学校徽}\label{xmulogo}
-% \end{figure}
-% 根据《厦门大学本科毕业论文（设计）规范》\cite{xmuthesis}要求，
-% 图片的标题和图号需要在图的下方正中位置。
-% 下面再展示一个两图并排的示例：
-% \begin{figure}[!htb]
-%     \begin{minipage}{0.5\linewidth}
-%         \centering
-%         \includegraphics[height=5em]{xmu-logo-icon.jpg}
-%         \caption{厦门大学校徽}\label{xmu1}
-%     \end{minipage}
-%     \begin{minipage}{0.5\linewidth}
-%         \centering
-%         \includegraphics[height=5em]{xmu-logo-text.jpg}
-%         \caption{厦门大学文字}\label{xmu2}
-%     \end{minipage}
-% \end{figure}
-% \xmusubsection{表格}{Tables}
-% 对于表格，编号也按照章节号-表格号进行编号。
-% 同样可通过caption指令设置表格小标题，可通过label和ref指令引用表格编号。
-% 下表 \ref{database} 中展示了一个数据库的表设计作为示例。
-% \begin{table}[!htb]
-%     \centering
-%     \caption{基本资料表}
-%     \label{database}
-%     \begin{tabular}{|l|l|l|l|l|}
-%         \hline
-%         \bf\songti 字段名称 & \bf\songti 字段类型 & \bf\songti 长度 & \bf\songti 字段描述 & \bf\songti 备注 \\ \hline
-%         账户号             & Number          & 30            &                 & 主键            \\ \hline
-%         密码              & Number          & 30            & 加密              &               \\ \hline
-%         姓名              & Varchar         & 50            &                 &               \\ \hline
-%         电子邮箱            & Varchar         & 50            & VIP客户必填         &               \\ \hline
-%     \end{tabular}
-% \end{table}
-% 根据《厦门大学本科毕业论文（设计）规范》\cite{xmuthesis}要求，
-% 表格的标题和图号需要在表的上方正中位置。
-% 表格内容的字体为5号宋体，表头的字体为5号宋体加粗。
-% \xmusection{画图}{Plotting}
-% 可以使用tikzpicture环境绘制函数、折线图、散点图等，例如图 \ref{plot} 所示：
-% \begin{figure}[!htbp]
-%     \centering
-%     \begin{tikzpicture}
-%         \begin{axis}[
-%                 xlabel={Temperature [Celsius Degree]},
-%                 ylabel={Solubility [g per 100 g water]},
-%                 xmin=0, xmax=100,
-%                 ymin=0, ymax=120,
-%                 xtick={0,20,40,60,80,100},
-%                 ytick={0,20,40,60,80,100,120},
-%                 legend pos=north west,
-%                 ymajorgrids=true,
-%                 grid style=dashed,
-%             ]
-
-%             \addplot[
-%                 color=blue,
-%                 mark=square,
-%             ]
-%             coordinates {
-%                     (0,23.1)(10,27.5)(20,32)(30,37.8)(40,44.6)(60,61.8)(80,83.8)(100,114)
-%                 };
-%             \legend{CuSO\(_4\cdot\)5H\(_2\)O}
-
-%         \end{axis}
-%     \end{tikzpicture}
-%     \caption{Temperature dependence of CuSO\(_4\cdot\)5H\(_2\)O solubility}\label{plot}
-% \end{figure}
-% \xmusection{公式}{Formulas}
-% 公式可以分为行内公式 $a^2+b^2=c^2$ 和行间公式：
-% $$
-%     \int_a^b\int_a^x\int_x^{x^2}(3y+7)z\;\mathrm{d}z\,\mathrm{d}y\,\mathrm{d}x
-% $$
-% $$
-%     |-0.75|^{2}+(5.5-4.2)^2+\sqrt[4.2]{3}+\log_{3.3}{4.7}+\cos1.24\,\sin1.7\approx5.17
-% $$
-% 如果需要指定公式编号，同样可通过label和ref指令来引用。公式 \ref{eq1} 的正确结果应该为 $\frac{\sqrt{3}}{6}$。
-% \begin{equation}\label{eq1}
-%     \lim_{x\to0}\frac{\displaystyle{\int_{\sin x}^x\sqrt{3+t^2}\,\mathrm{d}t}}{x(e^{x^2}-1)}
-% \end{equation}
-% 公式 \ref{eq2} 提供了一个矩阵示例，注意加粗字母最好是使用boldsymbol而非bm：
-% \begin{equation}\label{eq2}
-%     \boldsymbol{Ax} = \boldsymbol{b},\quad\boldsymbol{A} = \left(\begin{array}{ccc}
-%             a_{11} & a_{12} & a_{13} \\
-%             a_{21} & a_{22} & a_{23} \\
-%             a_{31} & a_{32} & a_{33} \\
-%         \end{array}\right),\quad \boldsymbol{b}=\left(\begin{array}{c}
-%             b_1 \\ b_2 \\ b_3\end{array}\right)
-% \end{equation}
-% 公式 \ref{eq3} 提供了一个行列式示例：
-% \begin{equation}\label{eq3}
-%     \left|\begin{array}{cc}
-%         1 & 2 \\
-%         3 & 4 \\
-%     \end{array}\right|=1\times4-2\times3=-2
-% \end{equation}
-% 公式 \ref{eq4} 提供了一个方程组示例：
-% \begin{equation}\label{eq4}
-%     \begin{cases}
-%         mgh=mv_1^2                         \\
-%         \dfrac12mv_2^2-\dfrac12mv_1^2=F_fs \\
-%         F_f=\mu mg                         \\
-%     \end{cases} \Rightarrow s,v_1,F_f
-% \end{equation}
-% 公式字体采用的是mathptmx。
-% \xmusection{算法}{Algorithms}
-% 如果只是展示代码，可考虑使用verbatim环境
-% \footnote{更高级的代码展示可以考虑使用listings宏包中的lstlisting环境，
-% 支持代码高亮、换行、标注行号、自定义颜色、自定义字体等功能。}。
-% 这里插入了一个脚注。可以通过footnote指令插入脚注\footnote{脚注示例。}。
-% \begin{verbatim}
-% #include <unistd.h>
-% int main()
-% {
-%     write(STDOUT_FILENO, "Hello, world!\n", 14);
-%     return 0;
-% }
-% \end{verbatim}
-% 如果只是展示算法，而不展示具体代码，可以使用算法环境实现，例如算法 \ref{alg1}：
-% \begin{algorithm}[!htb]
-%     \KwData{sum, $i$: integer}
-%     \Begin{
-%         \For{$i\leftarrow0$ \KwTo $100$ \do}{
-%             sum $\leftarrow$ sum + $i$\;
-%             \If{\rm sum $>4000$}{
-%                 \bf break\;
-%             }
-%         }
-%         \bf print \rm$i$\;
-%     }
-%     \caption{循环求和算法}\label{alg1}
-% \end{algorithm}
-% #endregion
 %%%%%%%% 参考文献 %%%%%%%%
 
 \begin{reference}
-    % 如果需要使用 bib 文件导入参考文献，则取消注释下一行
     % \bibliography{references.bib}
-    % bib 文件可以通过百度学术、Google Scholar 的引用界面自动生成
-    % 已自动按照 GB/T 7714-2005 设置参考文献的引用格式
-
     % 手动添加参考文献
     \begin{thebibliography}{5}
-        % \bibitem[1]{xmuischool} 厦门大学图书馆. i学堂直播：使用LaTeX排版论文全攻略-进阶篇[EB/OL]. \url{https://library.xmu.edu.cn/wd/jzkj/i_xt.htm}, 2021.
-        % \bibitem[2]{xmuthesis} 厦门大学教务处. 厦门大学本科毕业论文（设计）规范[Z]. 厦门大学教务处: 厦大教〔2016〕5号.
-        % \bibitem[3]{latex2e} 胡伟. LaTeX 2e完全学习手册[M]. 清华大学出版社, 2013.
-        % \bibitem[4]{easylatex} 吴康隆. 简单高效LaTeX[M]. 人民邮电出版社, 2020.
-        % \bibitem[5]{template} F5Soft.site. 厦门大学本科毕业论文LaTeX模版[EB/OL]. \url{https://github.com/F5Soft/xmu-template}, 2022.
         \bibitem[1]{zhaotoubiaoxianzhuang}芮丽梅,石国虎.新形势下招标投标现状与发展趋势[J].招标采购管理,2021,(07):11-12.
         \bibitem[2]{chyxx}智研咨询.2025-2031年中国招标采购行业发展模式分析及未来前景规划报告[EB/OL]. \url{https://www.chyxx.com/research/202110/980866.html}, 2024.
-        \bibitem[3]{report}中研普华产业研究院.2025-2030年招投标市场深度分析及发展趋势研究咨询报告[EB/OL]. \url{https://www.chinairn.com/news/20250220/103457473.shtml}, 2024.
+        \bibitem[3]{report}中研普华产业研究院.
+            2025-2030年招投标市场深度分析及发展趋势研究咨询报告[EB/OL].\url{https://www.chinairn.com/news/20250220/103457473.shtml}, 2024.
         \bibitem[4]{AIzhanwang}程建宁.AI技术在招标投标活动中的应用及展望[J].招标采购管理,2023,(07):61-63.
         \bibitem[5]{RAG}Yunfan Gao, Yun Xiong, Xinyu Gao, Kangxiang Jia, Jinliu Pan, Yuxi Bi, Yi Dai, Jiawei Sun, Meng Wang, Haofen Wang.Retrieval-Augmented Generation for Large Language Models: A Survey[J/OL].arXiv:2312.10997[cs.CL]
         \bibitem[6]{graphRAG}Darren Edge, Ha Trinh, Newman Cheng, Joshua Bradley, Alex Chao, Apurva Mody, Steven Truitt, Dasha Metropolitansky, Robert Osazuwa Ness, Jonathan Larson.From Local to Global: A Graph RAG Approach to Query-Focused Summarization[J/OL].arXiv:2404.16130[cs.CL]
         \bibitem[7]{RRR}Xinbei Ma, Yeyun Gong, Pengcheng He, Hai Zhao, Nan Duan.Query Rewriting for Retrieval-Augmented Large Language Models[J/OL].arXiv:2305.14283 [cs.CL]
         \bibitem[8]{HyDE}Luyu Gao, Xueguang Ma, Jimmy Lin, Jamie Callan.Precise Zero-Shot Dense Retrieval without Relevance Labels[J/OL]arXiv:2212.10496 [cs.IR]
-        \bibitem[9]{Long}Yuri Kuratov, Aydar Bulatov, Petr Anokhin, Dmitry Sorokin, Artyom Sorokin, Mikhail Burtsev.In Search of Needles in a 11M Haystack: Recurrent Memory Finds What LLMs Miss[J/OL].arXiv:2402.10790 [cs.CL]
+        \bibitem[9]{Long}Yuri Kuratov, Aydar Bulatov, Petr Anokhin,Dmitry Sorokin, Artyom Sorokin, Mikhail Burtsev.
+            In Search of Needles in a 11M Haystack: Recurrent Memory Finds What LLMs Miss[J/OL].
+            arXiv:2402.10790 [cs.CL]
     \end{thebibliography}
 \end{reference}
 
 %%%%%%%% 附录 %%%%%%%%
 
 \begin{appendix}
-    \xmusection{接口api}{Tables}
+    \xmusection{接口api}{API Interfaces}
     \begin{table}[!htb]
         \centering
         \caption{接口api}
-        \label{}
+        \label{apis}
         \begin{tabular}{|l|l|l|l|l|}
             \hline
             \bf\songti 参数 & \bf\songti 参数类型& \bf\songti 参数描述 & \bf\songti 备注 \\ \hline
@@ -831,69 +672,8 @@ RAG技术栈也越加丰富。LangChain和LLamalndex等大模型框架已经支�
         \end{tabular}
     \end{table}
 
-    \xmusection{python环境}{Tables}
-    \xmusection{前端环境}{Tables}
-    % \xmusection{附表}{Tables}
-    % 这里放一些附录的内容，例如表格或其他说明。如附表\ref{atable}。
-    % \begin{table}[!htb]
-    %     \centering
-    %     \caption{附表示例}
-    %     \label{atable}
-    %     \begin{tabular}{llr}
-    %         \hline
-    %         \multicolumn{2}{c}{Item} &                          \\ \cline{1-2}
-    %         Animal                   & Description & Price (\$) \\ \hline
-    %         Gnat                     & per gram    & 13.65      \\
-    %                                  & each        & 0.01       \\
-    %         Gnu                      & stuffed     & 92.50      \\
-    %         Emu                      & stuffed     & 33.33      \\
-    %         Armadillo                & frozen      & 8.99       \\ \hline
-    %     \end{tabular}
-    % \end{table}
-    % 附录中的编号均以字母A开头。例如公式 \ref{eq5}
-    % \begin{equation}\label{eq5}
-    %     \sin \left(2x+\frac\pi2\right)=\frac 12
-    % \end{equation}
-    % \xmusection{厦门大学本科毕业论文（设计）规范摘要}{Abstract of Xiamen University Undergraduate Dissertation (Design) Specification}
-    % 主修专业毕业论文（设计）封面使用 160g 白色双胶纸，辅修封面为 160g 浅黄色皮纹纸。内页均为 A4 规格 80g 双胶纸。\par
-    % 章的标题占2行，标题以外的文字为1.5倍行距。\par
-    % 上边距和左边距应留 25mm 以上间隙，下边距和右边距应分别留 20mm 以上间隙。\par
-    % 每页须加“页眉”和“页码”。奇数页页眉内容为当前章名，如“第一章 绪论”。偶数页页眉内容为论文题目。学位论文的页码，正文、参考文献、附录部分用阿拉伯数字连续编码并居中，前置部分用罗马数字单独连续编码居中（封面除外）。\par
-    % 封面中文标题：二号黑体\par
-    % 封面英文标题：三号 Times New Roman 加粗\par
-    % 中文摘要标题：小三号黑体\par
-    % 中文关键词标题：小四号黑体\par
-    % 中文摘要、关键词内容：小四号宋体\par
-    % 英文摘要标题：小三号 Times New Roman 加粗\par
-    % 英文关键词标题：小四号 Times New Roman 加粗\par
-    % 英文摘要、关键词内容：小四号 Times New Roman\par
-    % 中文目录标题：小三号黑体\par
-    % 中文目录中章的标题：四号黑体\par
-    % 中文目录中节的标题：小四号黑体\par
-    % 中文目录中三级标题：小四号宋体\par
-    % 英文目录标题：小三号 Times New Roman 加粗\par
-    % 英文目录中章的标题：四号 Times New Roman 加粗\par
-    % 英文目录中节的标题：小四号 Times New Roman 加粗\par
-    % 英文目录中三级标题：小四号 Times New Roman\par
-    % 章的标题：小三号黑体\par
-    % 节的标题：四号黑体\par
-    % 三级标题：小四号黑体\par
-    % 正文：小四号宋体\par
-    % 页眉：小五号宋体\par
-    % 页码：小五号 Times New Roman\par
-    % 注释内容：小五号宋体\par
-    % 表格、图的标题、单位、表头：五号宋体加粗\par
-    % 表格内容：五号宋体\par
-    % 表格、图的资料来源：小五号宋体\par
-    % 参考文献标题：小三号黑体\par
-    % 中文参考文献表：五号宋体\par
-    % 英文参考文献表：五号 Times New Roman\par
-    % 附录标题：小三号黑体\par
-    % 致谢标题：小三号黑体\par
-    % 致谢内容：小四号宋体\par
-    % % 对于中英文混杂的内容，{\bfseries\songti 中文的字体若是用宋体，英文的字体则采用Times New Roman}；{\sffamily 中文的字体若是黑体，英文的字体则采用Arial}。\footnote{因此，本模版提供了如下的几种字体设置。rm：罗马字族，中文宋体，英文Times。sf：等线字族，中文黑体，英文Arial。bf：粗体序列，中文黑体，英文Times加粗。it：斜体序列，中文楷体，英文Times斜体。如果需要使用难看的宋体加粗，则需要通过 \textbackslash bf\textbackslash songti实现。当然，也可以使用 songti、heiti、kaishu 手动指定中文字体，此时英文字体均默认为Times。}
-    % \xmusubsection{附录三级标题}{Subsection in Appendix}
-    % \subsubsection{附录四级标题}
+    \xmusection{python环境}{Python Environment}
+    \xmusection{前端环境}{ Front-end Environment}
 \end{appendix}
 
 %%%%%%%% 致谢（默认在最后） %%%%%%%%
