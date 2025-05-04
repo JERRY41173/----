@@ -121,8 +121,9 @@ and better serve the bidding and tendering industry.
 3.招标采购行业涉及大量的商业机密和敏感信息，尤其是对于提供SAAS（Software as a Service，软件即服务）的服务商而言，在技术上和社会信任上都需要长期努力。
 % #endregion
 \xmusection{RAG技术}{RAG Technology}
-% #region
+
 \xmusubsection{RAG简介}{Introduction to RAG}
+% #region
 RAG（Retrieval-Augmented Generation，检索增强生成）
 是一种连接外部数据源以增强大语言模型（LLM）输出质量的技术。
 这种技术帮助 LLM 访问私有数据或特定领域的数据，并解决幻觉问题。
@@ -132,14 +133,16 @@ RAG技术一般可以划分为信息检索和生成两个阶段。
 
 在信息检索阶段，系统解析用户输入的文本，
 从构建的专业知识库中，通过向量检索、图检索等方式筛选相关程度最高的文本片段。
-在生成阶段，模型将检索到的文档片段作为上下文与用户输入的文本一起输入到seq2seq模型中，得到输出。
-
+在生成阶段，模型将检索到的文档片段作为上下文与用户输入的文本
+一起输入到文本模型中，得到输出。
+% #endregion
 \begin{figure}[!htb]
     \centering
     \includegraphics[width=30em]{RAG.png}\\
     \caption{RAG技术基本原理}\label{ragyuanli}
 \end{figure}
 \xmusubsection{RAG技术在智能标书撰写工具中的应用潜力}{Application Potential of RAG in Intelligent Bid Document Writing Tools}
+% #region
 标书撰写的过程可以分解为招标要求理解和标书内容生成两个任务，
 传统的大语言模型能够满足一般的文本理解和内容生成任务，但受限于模型的训练数据，
 对于标书撰写这样涉及专业知识和企业信息以及多种综合因素的复杂任务，存在一定局限性。
@@ -154,13 +157,21 @@ RAG模型能够更精准地理解招标文件的核心要求，并利用相关�
 3、提供决策参考：RAG模型可以检索市场数据、竞争对手信息等外部知识，结合预设的竞价、博弈模型，
 为标书撰写提供有价值的决策参考。
 % #endregion
+\xmusection{大语言模型}{Large Language Model}
+% #region
+大语言模型（LLM）是基于深度学习的自然语言处理模型，具有强大的文本生成和理解能力。
+% #endregion
 \xmusection{本文工作}{Work of This Thesis}
 % #region
 本文工作主要包括以下几个方面：
-分析现有的智能标书撰写工具，设计基于RAG技术的智能标书撰写系统；
+分析现有的智能标书撰写工具，设计基于RAG技术的智能标书撰写系统。
+
 实现“招标需求理解-标书框架生成-标书内容生成”工作流；
+
 实现基于知识图谱的方案库，将用户上传的文件，解析为可用于RAG的知识图谱；
+
 实现基于Prompt的风格迁移功能，为用户提供预设或自定义的风格选项；
+
 实现“数据检索-工具调用-输出决策”的决策参考工作流；
 % #endregion
 \xmusection{论文结构}{Structure of the Thesis}
@@ -246,14 +257,96 @@ RAG模型能够更精准地理解招标文件的核心要求，并利用相关�
 标书中包含必不可少的报价部分，现有工具几乎不能给出有可靠依据的报价。
 
 % #endregion
-\xmusubsection{RAG技术研究现状}{Research Status of RAG Technology}
+\xmusection{RAG技术研究现状}{Research Status of RAG Technology}
+\xmusubsection{RAG技术原理}{Introduction to RAG Technology}
+% #region
+RAG技术可以分为检索和生成两个阶段。
+
+给定用户输入$q$，检索过程可表示为：$z = Search(q)$,其中$z$为检索到的文档集合，$Search$为检索函数。
+
+生成过程可表示为：$y = G(q,z)$，其中$y$为生成的文本序列，$G(·)$为生成函数。
+
+RAG过程可以被完整表示为：
+$$
+y = G(q,Search(q))
+$$
+
+具体的检索方法可以是基于向量的检索方法，也可以使用基于知识图谱的检索方法。
+
+向量检索方法的基本原理如下：
+
+首先将文本原文向量化存储。
+
+给定文档集合$D=\{d_1,d_2,...,d_n\}$得到文档向量：
+$$
+v_i = E(d_i) \in \mathbb{R}^d
+$$
+
+其中$E(·)$为嵌入函数（如BERT、text-embedding模型），$d$为嵌入维度
+
+给定用户查询$q$，得到查询向量：
+$$
+v_q = E(q) \in \mathbb{R}^d
+$$
+
+计算文档向量与查询向量的相似度，此处以余弦相似度为例：
+
+$$
+Sim(q,d_i) = (v_q·v_i)/(||v_q||·||v_i||)
+$$
+
+将相似度进行排序得到检索结果$z$，此处以top-k排序为例：
+
+$$
+z = argmax_{d_i \in D} Sim(q,d_i)
+$$
+
+图检索方法的基本原理如下：
+
+对于知识图谱$G=(V,E)$，其中$V$为实体节点，$E$为关系边：
+
+给定用户查询$q$, 基于知识图谱的检索方法如下:
+
+首先，识别图中的入口点（初始节点）：
+$$
+V_0 = f(q, G) \subset V
+$$
+
+其中$f$是任意一个查询函数，将查询映射到相关节点，可以是基于文本的匹配、基于语义的匹配等。
+
+然后，遍历图中的入口点，使用图检索算法来扩展节点：
+$$
+V_r = Expand(V_0, G, r)
+$$
+
+其中，$Expand$是图检索函数，$r$是遍历半径。
+
+检索到的子图$G_q$为：
+
+$$
+G_q = (V_q, E_q)
+$$
+
+其中，$V_q$为检索到的子图节点集合，$E_q$为检索到的子图边集合。
+
+最后，检索到的信息可以使用相关性评分进行排序：
+$$
+Score(v, q) = \alpha \cdot Sim(v, q) + \beta \cdot Centrality(v, G_q)
+$$
+
+其中，$\alpha$和$\beta$为权重参数，$Sim$为相似度函数，$Centrality$为子图中节点的重要性度量。
+
+% #endregion
+\xmusubsection{RAG技术发展历程}{Development History of RAG Technology}
 % #region
 RAG技术最早由Facebook AI Research提出，
 随后在任务规划、推理检索、多模态等研究方向进一步发展。
 
 Rewrite-Retrieve-Read模型利用 LLM 的能力，
-通过重写模块和 LM 反馈机制来优化检索查询，并通过更新重写模型来提高任务性能\cite{RRR}。
-HyDE通过关注生成答案与真实文档之间的嵌入相似性，旨在提高检索的相关性\cite{HyDE}。
+通过重写模块和 LM 反馈机制来优化检索查询，
+并通过更新重写模型来提高任务性能\cite{RRR}。
+HyDE通过关注生成答案与真实文档之间的嵌入相似性，
+旨在提高检索的相关性\cite{HyDE}。
 2024年7月2日，微软开源GraphRAG\cite{graphRAG}。
 GraphRAG利用基于知识图谱的方法，从原文档导出知识图谱，聚类后生成社区摘要。
 将社区摘要对用户问题的响应汇总，作为对用户的最终响应。
@@ -265,7 +358,23 @@ RAG过程已经被抽象出各种专用子组件，
 
 RAG技术栈也越加丰富。LangChain和LLamalndex等大模型框架已经支持RAG技术的快速实现。
 目前也已经出现多个成熟的专用RAG框架，如Haystack、RAGFlow。
-
+% #endregion
+\xmusection{大语言模型的研究现状}{Research Status of Large Language Models}
+\xmusubsection{大语言模型的原理}{Principle of Large Language Models}
+% #region
+大语言模型（LLM）是基于深度学习的自然语言处理模型，具有强大的文本生成和理解能力。
+% #endregion
+\xmusubsection{大语言模型的研究现状}{Research Status of Large Language Models}
+% #region
+大语言模型（LLM）是基于深度学习的自然语言处理模型，具有强大的文本生成和理解能力。
+% #endregion
+\xmusubsection{少样本学习}{Few-Shot Learning}
+% #region
+大语言模型（LLM）是基于深度学习的自然语言处理模型，具有强大的文本生成和理解能力。
+% #endregion
+\xmusubsection{提示词工程}{Prompt Engineering}
+% #region
+大语言模型（LLM）是基于深度学习的自然语言处理模型，具有强大的文本生成和理解能力。
 % #endregion
 \xmuchapter{智能标书撰写系统设计}{Design of the Intelligent Bid Document Writing System}
 
@@ -518,12 +627,12 @@ RAG技术栈也越加丰富。LangChain和LLamalndex等大模型框架已经支�
     将mongoDB的模糊查询封装为langchain工具类，由LLM提取若干关键词进行查询。
     
     前端使用vuetify进行渲染。
-    \begin{figure}[!htb]
-        \centering
-        \includegraphics[width=38em]{grapheg.png}\\
-        \caption{资历库和素材库前端展示
-        }\label{frontend}
-    \end{figure}
+    % \begin{figure}[!htb]
+    %     \centering
+    %     \includegraphics[width=38em]{grapheg.png}\\
+    %     \caption{资历库和素材库前端展示
+    %     }\label{frontend}
+    % \end{figure}
 
     \xmusubsection{招标需求识别模块}{Tender Requirement Identification Module}
     使用deepseek-chat模型进行招标需求识别。结构化返回值定义如下：
@@ -536,12 +645,12 @@ RAG技术栈也越加丰富。LangChain和LLamalndex等大模型框架已经支�
             description="scoring_criteria")
     \end{verbatim}
 
-    \begin{figure}[!htb]
-        \centering
-        \includegraphics[width=38em]{grapheg.png}\\
-        \caption{招标需求识别模块前端
-        }\label{requirements}
-    \end{figure}
+    % \begin{figure}[!htb]
+    %     \centering
+    %     \includegraphics[width=38em]{grapheg.png}\\
+    %     \caption{招标需求识别模块前端
+    %     }\label{requirements}
+    % \end{figure}
 
     \xmusubsection{标书目录生成模块}{Bid Document Table of Contents Generation Module}
     使用deepseek-chat模型进行标书目录生成。结构化返回值定义如下：
@@ -563,12 +672,12 @@ RAG技术栈也越加丰富。LangChain和LLamalndex等大模型框架已经支�
             default_factory=str,description="正文列表")
     \end{verbatim}
 
-    \begin{figure}[!htb]
-        \centering
-        \includegraphics[width=38em]{grapheg.png}\\
-        \caption{标书目录生成模块前端
-        }\label{mulu}
-    \end{figure}
+    % \begin{figure}[!htb]
+    %     \centering
+    %     \includegraphics[width=38em]{grapheg.png}\\
+    %     \caption{标书目录生成模块前端
+    %     }\label{mulu}
+    % \end{figure}
 
     \xmusubsection{标书正文生成模块}{Bid Document Body Generation Module}
     使用方案库后端作检索增强，使用deepseek-chat模型生成正文。
@@ -579,12 +688,12 @@ RAG技术栈也越加丰富。LangChain和LLamalndex等大模型框架已经支�
         source: Optional[str] = Field(description="内容来源elementId")
     \end{verbatim}
 
-    \begin{figure}[!htb]
-        \centering
-        \includegraphics[width=38em]{grapheg.png}\\
-        \caption{标书正文生成模块前端
-        }\label{content}
-    \end{figure}
+    % \begin{figure}[!htb]
+    %     \centering
+    %     \includegraphics[width=38em]{grapheg.png}\\
+    %     \caption{标书正文生成模块前端
+    %     }\label{content}
+    % \end{figure}
 
     \xmusubsection{决策参考模块}{Decision-Making Reference Module}
     在标书生成报价部分，使用成本定价模型辅助用户进行投标决策。
@@ -606,12 +715,12 @@ RAG技术栈也越加丰富。LangChain和LLamalndex等大模型框架已经支�
 
     模板文档来自中华人民共和国标准施工招标文件（2007年版）
 
-    \begin{figure}[!htb]
-        \centering
-        \includegraphics[width=38em]{grapheg.png}\\
-        \caption{生成文档效果
-        }\label{text}
-    \end{figure}
+    % \begin{figure}[!htb]
+    %     \centering
+    %     \includegraphics[width=38em]{grapheg.png}\\
+    %     \caption{生成文档效果
+    %     }\label{text}
+    % \end{figure}
 \xmuchapter{总结与展望}{Conclusion and Future Work}
 本次设计实现的智能标书撰写系统，虽然功能上能够满足了标书撰写的基本需求，
 但对于标书生成的质量还有很大提示空间。
@@ -657,23 +766,23 @@ RAG技术栈也越加丰富。LangChain和LLamalndex等大模型框架已经支�
 %%%%%%%% 附录 %%%%%%%%
 
 \begin{appendix}
-    \xmusection{接口api}{API Interfaces}
-    \begin{table}[!htb]
-        \centering
-        \caption{接口api}
-        \label{apis}
-        \begin{tabular}{|l|l|l|l|l|}
-            \hline
-            \bf\songti 参数 & \bf\songti 参数类型& \bf\songti 参数描述 & \bf\songti 备注 \\ \hline
-            id             & str         &                 &             \\ \hline
-            label               & str          &             &               \\ \hline
-            properties               & dict[str,Any]         &                 &               \\ \hline
-            embedding\_properties             & dict[str, list[float]] | None       &       &               \\ \hline
-        \end{tabular}
-    \end{table}
+    % \xmusection{接口api}{API Interfaces}
+    % \begin{table}[!htb]
+    %     \centering
+    %     \caption{接口api}
+    %     \label{apis}
+    %     \begin{tabular}{|l|l|l|l|l|}
+    %         \hline
+    %         \bf\songti 参数 & \bf\songti 参数类型& \bf\songti 参数描述 & \bf\songti 备注 \\ \hline
+    %         id             & str         &                 &             \\ \hline
+    %         label               & str          &             &               \\ \hline
+    %         properties               & dict[str,Any]         &                 &               \\ \hline
+    %         embedding\_properties             & dict[str, list[float]] | None       &       &               \\ \hline
+    %     \end{tabular}
+    % \end{table}
 
-    \xmusection{python环境}{Python Environment}
-    \xmusection{前端环境}{ Front-end Environment}
+    % \xmusection{python环境}{Python Environment}
+    % \xmusection{前端环境}{ Front-end Environment}
 \end{appendix}
 
 %%%%%%%% 致谢（默认在最后） %%%%%%%%
