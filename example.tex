@@ -175,16 +175,43 @@ RAG模型能够更精准地理解招标文件的核心要求，并利用相关�
 
 \xmusection{本文工作}{Work of This Thesis}
 % #region
-本文工作主要包括以下几个方面：
-分析现有的智能标书撰写工具，设计基于RAG技术的智能标书撰写系统。
+本文的研究与开发工作围绕构建智能标书撰写系统的展开，
+具体包括以下几个核心方向的探索与实现，
+旨在提升标书撰写的自动化程度、专业水平以及个性化适配能力：
 
-实现“招标需求理解-标书框架生成-标书内容生成”工作流；
+首先，系统性地调研并分析现有的主流智能标书撰写工具，
+评估其在内容生成逻辑、行业适配、交互体验等维度的优势与不足。
+在此基础上，本文提出并设计了一个基于{\bf RAG（Retrieval-Augmented Generation）技术}
+的智能标书撰写系统架构。
+该架构融合了检索式生成的双重优势——一方面借助语义检索引入高质量的上下文支撑，
+另一方面结合大模型强大的生成能力，确保生成内容的准确性与逻辑性。
 
-实现基于知识图谱的方案库，将用户上传的文件，解析为可用于RAG的知识图谱；
+其次，构建了贯穿全文生成过程的{\bf “招标需求理解 - 标书框架生成 - 标书内容生成”}
+三阶段工作流。系统首先对招标文档进行语义解析与意图抽取，
+精准识别出关键要素（如项目背景、技术要求、评分细则等）；
+随后通过Prompt引导和结构先验知识，自动生成具有行业逻辑的标书章节结构；
+最终，结合RAG机制生成每一章节的详细内容，并支持交互式编辑与增量修改。
 
-实现基于Prompt的风格迁移功能，为用户提供预设或自定义的风格选项；
+第三，设计并实现了一个基于{\bf 知识图谱的方案知识库}，
+用于提升系统的知识支持深度与结构化能力。
+用户上传的各类历史文档（如技术白皮书、过往投标书、产品手册等），
+将通过实体识别、关系抽取与语义对齐等技术，转化为RAG可用的图谱形式，
+构建面向标书撰写任务的“私有领域知识底座”。
+该图谱不仅用于支持上下文增强生成，还可作为问答与推荐模块的知识源。
 
-实现“数据检索-工具调用-输出决策”的决策参考工作流；
+第四，提出并实现了{\bf 基于Prompt的标书风格迁移机制}。
+系统预设多种撰写风格（如官方规范型、营销推广型、技术严谨型等），
+并允许用户自定义模板，通过控制提示语（Prompt）与引导上下文，
+实现生成内容在语言风格、语气语态、逻辑严谨度等维度上的可控迁移，
+满足不同行业、不同客户的个性化需求。
+
+最后，为满足项目团队在决策层面的辅助需求，
+本文构建了一个{\bf “数据检索 - 工具调用 - 输出决策”的多阶段参考流程}。
+该流程融合大模型的逻辑推理能力与外部工具（如数据分析API、法规知识库、评分模拟器等）
+的调用能力，自动化完成信息搜集、数据交叉验证和策略输出，
+为用户在撰写过程中提供基于数据和知识的智能参考建议，
+增强系统在复杂场景下的实用性与解释性。
+
 % #endregion
 \xmusection{论文结构}{Structure of the Thesis}
 % #region
@@ -195,7 +222,7 @@ RAG模型能够更精准地理解招标文件的核心要求，并利用相关�
 
 第二章：
 本章介绍传统的招投标方法和现有的智能标书撰写工具，分析其优缺点。
-详细回顾RAG技术的相关研究进展，其中重点介绍基于知识图谱的RAG技术。
+详细回顾大模型技术和RAG技术的相关研究进展。
 
 第三章：
 本章将对智能标书撰写系统进行需求分析。随后阐述系统架构设计。
@@ -204,7 +231,7 @@ RAG模型能够更精准地理解招标文件的核心要求，并利用相关�
 本章将描述系统的开发环境和工具，详细介绍系统功能的具体实现。
 
 第五章：
-本章将总结本文的主要研究成果，并讨论系统的优势和可能的改进方向。
+本章将总结本文的主要研究成果，并讨论可能的改进方向。
 % #endregion
 \xmuchapter{相关工作}{Related Work}
 \xmusection{招投标领域的研究现状}{Research Status in the Bidding and Tendering Field}
@@ -378,7 +405,7 @@ $$
 计算文档向量与查询向量的相似度，此处以余弦相似度为例：
 
 $$
-Sim(q,d_i) = (v_q·v_i)/(||v_q||·||v_i||)
+Sim(q,d_i) = (v_q \cdot v_i)/(|v_q|\cdot|v_i|)
 $$
 
 将相似度进行排序得到检索结果$z$，此处以top-k排序为例：
@@ -490,15 +517,41 @@ RAG技术栈也越加丰富。LangChain和LLamalndex等大模型框架已经支�
     \caption{上传的文件解析为文本后，分块进行实体和关系提取，合并相同实体后存储为知识图谱}\label{wenbwenjiexi}
 \end{figure}
 
-文档解析：将用户上传的文件解析为文本。
-文本分块：过长的文本会降低文本中早期信息的召回率\cite{Long}，
-因此需要将文件提取的文本进一步分块。
-实体和关系提取：利用LLM提取文本块中的实体和关系信息。
-文本向量化：将文本块语义信息转化为向量信息，以便于后续检索。
-知识图谱构建：将文本块、实体作为节点，关系作为边存储在知识图谱中。
-实体通过“FROM\_CHUNK”关系连接到所属的文本块。
-文本块节点之间通过“NEXT\_CHUNK”关系作为边连接。
-同一文件中不同文本块提取的实体和关系直接视为同一实体进行合并。
+{\bf 文档解析：} 在用户上传文件后，
+第一步需将其转换为可处理的纯文本格式。
+确保后续模块获得一致的输入。
+
+{\bf 文本分块：} 长文档中，
+早期信息往往与后续信息相互依赖，
+但若一次性检索全篇文本，早期关键信息的召回率会显著下降\cite{Long}。
+将文本拆分为合理长度的块，
+可以在保证上下文连贯性的同时提升搜索效率。
+分块策略还能够使得检索系统更快定位目标段落，
+提高整体召回率与响应速度。
+
+{\bf 实体和关系提取：} 在分块后的文本上，
+调用大语言模型（LLM）主动识别出关键实体与其内在关联。
+这一步不仅构建了对领域概念的深刻理解，
+还能将复杂的语义网络以可操作的形式呈现出来。
+通过提取实体与关系，得到结构化知识，
+为后续的向量检索和图谱构建提供了精准的语义锚点。
+
+{\bf 文本向量化：} 为了方便检索，
+需将每个文本块的语义信息映射到高维向量空间。
+向量化过程借助embedding模型，
+将文本通过{\bf 语义嵌入}技术转化为数值表示，
+使得相似句子在向量空间中彼此靠近。
+
+{\bf 知识图谱构建：} 将文本块与提取的实体视为图谱中的节点，
+实体之间的关系则作为边进行存储。
+这种图结构充分利用了图数据库对复杂关系的天然支持，
+使得多步推理与路径查询变得简单直观。
+借助此图谱，我们可以快速追溯任意实体的上下文来源，
+或在不同文档之间发现深层关联，为智能问答和方案推荐提供坚实的数据支撑。
+
+在图谱中，实体通过“{\bf FROM\_CHUNK}”关系连接到所属文本块，
+而文本块节点则以“{\bf NEXT\_CHUNK}”关系串联；
+同一文件中由不同块提取出的相同实体，则会被直接合并。
 
 检索工作流如图：
 
@@ -617,9 +670,16 @@ RAG技术栈也越加丰富。LangChain和LLamalndex等大模型框架已经支�
 % #endregion
 \xmusection{风格迁移}{Style Transfer}
 % #region
-该模块负责调整生成标书风格。
-风格迁移采用基于Prompt的方式，将预设文字或用户自定义的文字作为提示词，
-指导LLM生成符合特定风格的内容。
+该模块负责提供风格迁移功能。
+本系统中的风格迁移依托 {\bf Prompt工程}实现。
+通过设计提示模板引导语言模型输出不同风格的文本。
+针对政府采购类标书，强调 {\bf 庄重、官方、合规}；
+而对于技术方案类标书，则可能倾向 {\bf 简洁、逻辑清晰、技术导向}；
+预设两种提示生成模式：采购类和技术类。
+对于用户自定义的风格，系统会自动生成相应的提示模板；
+
+在实现上，系统采用模块化架构，将风格迁移模块独立封装，
+实现风格模板与标书内容的解耦。
 % #endregion
 \xmusection{决策参考}{Decision-Making Reference}
 % #region
@@ -635,7 +695,6 @@ RAG技术栈也越加丰富。LangChain和LLamalndex等大模型框架已经支�
 
 价格预估使用成本定价模型：
 \begin{equation}
-    % \lim_{x\to0}\frac{\displaystyle{\int_{\sin x}^x\sqrt{3+t^2}\,\mathrm{d}t}}{x(e^{x^2}-1)}
     P = C (1+r)
 \end{equation}
 
@@ -669,13 +728,57 @@ RAG技术栈也越加丰富。LangChain和LLamalndex等大模型框架已经支�
     \xmusubsection{方案库(知识图谱)}{Solution Library (Knowledge Graph)}
     使用neo4j存储知识图谱。
     neo4j是一个图数据库，使用cipher语句进行数据存储和查询。
+
     后端使用neo4j-graphrag库和neo4j库进行知识图谱操作。
     neo4j库用于连接到neo4j进行基本数据操作。
     neo4j-graphrag库是neo4j提供的知识图谱框架库，用于实现文件解析和检索支持。
+
     文件解析过程中，文件转文本使用Langchian的Unstructured库
+    
     文本向量化使用阿里百炼text-embedding-v3模型，向量维度为1024维，
     实体和关系提取使用deepseek-chat模型。
+    
     检索支持过程中，文本向量化同样使用阿里百炼text-embedding-v3模型
+
+    实体和关系提取提示词设计如下：
+\begin{verbatim}
+You are a professional text analysis assistant. 
+Please analyze the input text 
+and extract key concepts and their relationships.
+
+You must output ONLY a JSON object in the following format, 
+with NO additional text or explanation:
+
+{
+    "nodes": [
+        {
+            "id": "1",          // Must be a unique string
+            "label": "概念1",   // Concept name in Chinese
+            "group": "类别1"    // Category in Chinese
+        }
+    ],
+    "edges": [
+        {
+            "from": "1",       // Must match an existing node id
+            "to": "2",         // Must match an existing node id
+            "label": "包含"    // Relationship description in Chinese
+        }
+    ]
+}
+
+Requirements:
+1. Output ONLY the JSON object, no other text
+2. All node IDs must be unique strings
+3. All 'from' and 'to' in edges must reference existing node IDs
+4. All labels and descriptions MUST be in Chinese
+5. The output must be valid JSON format
+6. Extract at least 3 key concepts and their relationships
+7. Group similar concepts under the same category
+8. Use natural and idiomatic Chinese expressions
+9. Ensure relationship descriptions are clear and meaningful
+
+DO NOT include any explanations or markdown formatting in the output.
+\end{verbatim}
     
     \begin{figure}[!htb]
         \centering
@@ -765,6 +868,27 @@ RAG技术栈也越加丰富。LangChain和LLamalndex等大模型框架已经支�
         }\label{content}
     \end{figure}
 
+    \xmusubsection{风格迁移模块}{Style Transfer Module}
+    提示词定义如下,
+    采购类：
+\begin{verbatim}
+    请在生成时采用政府采购类公文风格，
+    用词规范、结构清晰、语气正式，
+    适用于招标或采购公告中的使用场景。
+\end{verbatim}
+
+    技术类：
+\begin{verbatim}
+    请在生成时采用技术类文档风格，
+    用语专业、逻辑清晰，适用于开发者或技术人员阅读，
+    突出技术实现细节与参数说明。
+\end{verbatim}
+
+    用户自定义：
+\begin{verbatim}
+    请在生成时参考以下文段，理解相应风格特点，生成与之风格相近的内容：
+    {user_input}
+\end{verbatim}
     \xmusubsection{决策参考模块}{Decision-Making Reference Module}
     在标书生成报价部分，使用成本定价模型辅助用户进行投标决策。
     生成的决策结构化返回值定义如下：
@@ -791,6 +915,7 @@ RAG技术栈也越加丰富。LangChain和LLamalndex等大模型框架已经支�
         \caption{生成文档效果
         }\label{text}
     \end{figure}
+
 \xmuchapter{总结与展望}{Conclusion and Future Work}
 本次设计实现的智能标书撰写系统，虽然功能上能够满足了标书撰写的基本需求，
 但对于标书生成的质量还有很大提示空间。
@@ -853,6 +978,8 @@ RAG技术栈也越加丰富。LangChain和LLamalndex等大模型框架已经支�
 
     % \xmusection{python环境}{Python Environment}
     % \xmusection{前端环境}{ Front-end Environment}
+    % \xmusection{提示词设计}{Prompt Design}
+
 \end{appendix}
 
 %%%%%%%% 致谢（默认在最后） %%%%%%%%
