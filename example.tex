@@ -120,6 +120,21 @@ and better serve the bidding and tendering industry.
 2.在投标过程中，投标人需要综合市场、企业、客户、竞争对手等多方面信息进行决策，仅仅依靠自然语言处理技术或简单的检索技术难以提供有参考价值的决策建议。
 3.招标采购行业涉及大量的商业机密和敏感信息，尤其是对于提供SAAS（Software as a Service，软件即服务）的服务商而言，在技术上和社会信任上都需要长期努力。
 % #endregion
+\xmusection{大语言模型}{Large Language Model}
+% #region
+大语言模型（英语：Large Language Model，简称LLM）是一种基于深度学习的人工智能技术，
+也是自然语言处理的核心研究内容之一。
+其核心是使用大规模数据集对模型进行训练，
+从而使其能够生成自然语言文本或理解语言文本的含义。
+这些模型通过层叠的神经网络结构，
+学习并模拟人类语言的复杂规律，
+达到接近人类水平的文本生成能力。
+大语言模型采用与小模型类似的Transformer架构和预训练目标（如 Language Modeling），
+与小模型的主要区别在于增加模型大小、训练数据和计算资源。
+相比传统的自然语言处理（Netural Language Processing, NLP）模型，
+大语言模型能够更好地理解和生成自然文本，同时表现出一定的逻辑思维和推理能力。
+% #endregion
+
 \xmusection{RAG技术}{RAG Technology}
 
 \xmusubsection{RAG简介}{Introduction to RAG}
@@ -157,10 +172,7 @@ RAG模型能够更精准地理解招标文件的核心要求，并利用相关�
 3、提供决策参考：RAG模型可以检索市场数据、竞争对手信息等外部知识，结合预设的竞价、博弈模型，
 为标书撰写提供有价值的决策参考。
 % #endregion
-\xmusection{大语言模型}{Large Language Model}
-% #region
-大语言模型（LLM）是基于深度学习的自然语言处理模型，具有强大的文本生成和理解能力。
-% #endregion
+
 \xmusection{本文工作}{Work of This Thesis}
 % #region
 本文工作主要包括以下几个方面：
@@ -255,6 +267,80 @@ RAG模型能够更精准地理解招标文件的核心要求，并利用相关�
 
 2、无法提供决策参考。
 标书中包含必不可少的报价部分，现有工具几乎不能给出有可靠依据的报价。
+
+% #endregion
+\xmusection{大语言模型的研究现状}{Research Status of Large Language Models}
+\xmusubsection{大语言模型的发展历程}{Development History of Large Language Models}
+% #region
+2017年，Google 提出了基于自注意力机制（Self-Attention）的特征提取器——Transformer，
+将传统的循环神经网络（Recurrent Neural Network, RNN）彻底取代，
+并成为后续所有大型语言模型（LLMs）的基础构件。
+Transformer 最核心的自注意力计算可表示为：
+
+$$
+\mathrm{Attention}(Q,K,V) = \mathrm{softmax}\Bigl(\frac{QK^\top}{\sqrt{d_k}}\Bigr)\,V
+$$
+
+其中 $Q, K, V$ 分别是查询（Query）、键（Key）和值（Value）矩阵，$d_k$ 是键的维度。
+
+2018年，OpenAI 发布了 GPT-1，首次提出“通用大模型预训练 + 任务特定微调”的范式
+——先在海量无标注语料上无监督地学习语言结构，再在小规模有标注数据上进行有针对性的微调。
+这种方法大幅缩短了新任务的开发周期，也降低了对标注数据量的依赖。
+
+随着应用场景的多样化，LLMs 在训练策略、模型架构和下游用例上不断演进。
+以预训练目标为例，既有面向填空的掩码语言模型（Masked Language Modeling, MLM），
+也有面向连续文本生成的自回归语言模型（Autoregressive Language Modeling），
+其概率分解可写为：
+
+$$
+P(x_1, x_2, \dots, x_n) = \prod_{i=1}^n P(x_i \mid x_{<i})
+$$
+
+目前主流的 Transformer 框架大致可分为三类：
+
+{\bf Encoder–Decoder 架构：}典型代表如 T5 和 BART，编码器负责理解输入语义，解码器生成目标文本，适用于机器翻译、摘要等序列到序列任务。
+
+{\bf Encoder-Only 架构：}典型代表 BERT 系列，通过双向上下文编码，擅长填空、文本分类和检索排序等理解型任务。
+
+{\bf Decoder-Only 架构：}典型代表 GPT 系列，采用左到右的自回归生成方式，擅长长文本创作、对话系统及代码生成等生成型任务。
+
+% #endregion
+
+\xmusubsection{提示词工程}{Prompt Engineering}
+% #region
+为了充分发挥大语言模型的优势、避免对全量参数的昂贵微调，
+近年来学界将目光聚焦于{\bf 提示学习（Prompt learning）}。
+提示，作为附加于模型输入的辅助信息，
+其核心在于让下游输入在形式上更贴近预训练阶段，
+从而缩小两者在分布和表达方式上的差异，以更高效地承载分类、生成及推理等任务。
+提示形式可大致分为{\bf 离散提示（Discrete prompt）}与{\bf 连续提示（Continuous prompt）}两大类。
+
+离散提示研究一方面致力于{\bf 自动化搜索与构建最优提示}，
+例如通过梯度引导或进化算法，从海量候选短语中挑选最优模板；
+另一方面依靠{\bf 人工设计}来激发模型潜能，典型代表包括{\bf 上下文学习（In-context learning）}
+——模型在少样本示例的上下文中直接给出答案，无需参数更新；
+以及{\bf 思维链（Chain-of-thought）}——在推理题上先生成逐步思路再得出最终结论
+，实现零/少样本强推理能力。
+
+与此同时，连续提示不受离散词汇的束缚，
+而是将提示信息表征为一组可训练向量。设提示向量为 $P$，
+模型原参数固定为 $\theta$，则下游任务的目标可表述为
+
+$$
+\min_{P}\;\mathbb{E}_{(x,y)\sim \mathcal{D}}\Bigl[\mathcal{L}\bigl(f_{\theta}(\,[P;\,x]\ )\,,y\bigr)\Bigr]
+$$
+
+其中 $[P;\,x]$ 表示将提示拼接到输入 $x$ 前部或特定层中。
+通过只优化 $P$ 而冻结 $\theta$，训练所需资源仅为全量参数的一个极小子集，
+极大降低了显存与计算开销。
+为进一步压缩参数量，研究者们还提出了{\bf 前缀微调（Prefix-tuning）}、
+{\bf P-tuning}及{\bf Adapter-tuning}等变体，它们分别在不同网络层插入可调前缀或轻量级模块。
+
+新增方法还能融入提示位置与训练目标的设计：
+如在中间层注入“软模板”，或采用对比学习与逆向生成等多种监督信号，
+提升模型对语义、情感或结构化信息的敏感度。此外，为了缓解提示偏差（prompt bias），
+研究者引入{\bf 提示校准（Prompt calibration）}技术，
+通过在验证集上统计校正分布，实现更稳健的 zero-shot/few-shot 性能。
 
 % #endregion
 \xmusection{RAG技术研究现状}{Research Status of RAG Technology}
@@ -359,23 +445,7 @@ RAG过程已经被抽象出各种专用子组件，
 RAG技术栈也越加丰富。LangChain和LLamalndex等大模型框架已经支持RAG技术的快速实现。
 目前也已经出现多个成熟的专用RAG框架，如Haystack、RAGFlow。
 % #endregion
-\xmusection{大语言模型的研究现状}{Research Status of Large Language Models}
-\xmusubsection{大语言模型的原理}{Principle of Large Language Models}
-% #region
-大语言模型（LLM）是基于深度学习的自然语言处理模型，具有强大的文本生成和理解能力。
-% #endregion
-\xmusubsection{大语言模型的研究现状}{Research Status of Large Language Models}
-% #region
-大语言模型（LLM）是基于深度学习的自然语言处理模型，具有强大的文本生成和理解能力。
-% #endregion
-\xmusubsection{少样本学习}{Few-Shot Learning}
-% #region
-大语言模型（LLM）是基于深度学习的自然语言处理模型，具有强大的文本生成和理解能力。
-% #endregion
-\xmusubsection{提示词工程}{Prompt Engineering}
-% #region
-大语言模型（LLM）是基于深度学习的自然语言处理模型，具有强大的文本生成和理解能力。
-% #endregion
+
 \xmuchapter{智能标书撰写系统设计}{Design of the Intelligent Bid Document Writing System}
 
 \xmusection{系统架构设计}{System Architecture Design}
@@ -627,12 +697,12 @@ RAG技术栈也越加丰富。LangChain和LLamalndex等大模型框架已经支�
     将mongoDB的模糊查询封装为langchain工具类，由LLM提取若干关键词进行查询。
     
     前端使用vuetify进行渲染。
-    % \begin{figure}[!htb]
-    %     \centering
-    %     \includegraphics[width=38em]{grapheg.png}\\
-    %     \caption{资历库和素材库前端展示
-    %     }\label{frontend}
-    % \end{figure}
+    \begin{figure}[!htb]
+        \centering
+        \includegraphics[width=38em]{grapheg.png}\\
+        \caption{资历库和素材库前端展示
+        }\label{frontend}
+    \end{figure}
 
     \xmusubsection{招标需求识别模块}{Tender Requirement Identification Module}
     使用deepseek-chat模型进行招标需求识别。结构化返回值定义如下：
@@ -645,12 +715,12 @@ RAG技术栈也越加丰富。LangChain和LLamalndex等大模型框架已经支�
             description="scoring_criteria")
     \end{verbatim}
 
-    % \begin{figure}[!htb]
-    %     \centering
-    %     \includegraphics[width=38em]{grapheg.png}\\
-    %     \caption{招标需求识别模块前端
-    %     }\label{requirements}
-    % \end{figure}
+    \begin{figure}[!htb]
+        \centering
+        \includegraphics[width=38em]{grapheg.png}\\
+        \caption{招标需求识别模块前端
+        }\label{requirements}
+    \end{figure}
 
     \xmusubsection{标书目录生成模块}{Bid Document Table of Contents Generation Module}
     使用deepseek-chat模型进行标书目录生成。结构化返回值定义如下：
@@ -672,12 +742,12 @@ RAG技术栈也越加丰富。LangChain和LLamalndex等大模型框架已经支�
             default_factory=str,description="正文列表")
     \end{verbatim}
 
-    % \begin{figure}[!htb]
-    %     \centering
-    %     \includegraphics[width=38em]{grapheg.png}\\
-    %     \caption{标书目录生成模块前端
-    %     }\label{mulu}
-    % \end{figure}
+    \begin{figure}[!htb]
+        \centering
+        \includegraphics[width=38em]{grapheg.png}\\
+        \caption{标书目录生成模块前端
+        }\label{mulu}
+    \end{figure}
 
     \xmusubsection{标书正文生成模块}{Bid Document Body Generation Module}
     使用方案库后端作检索增强，使用deepseek-chat模型生成正文。
@@ -688,12 +758,12 @@ RAG技术栈也越加丰富。LangChain和LLamalndex等大模型框架已经支�
         source: Optional[str] = Field(description="内容来源elementId")
     \end{verbatim}
 
-    % \begin{figure}[!htb]
-    %     \centering
-    %     \includegraphics[width=38em]{grapheg.png}\\
-    %     \caption{标书正文生成模块前端
-    %     }\label{content}
-    % \end{figure}
+    \begin{figure}[!htb]
+        \centering
+        \includegraphics[width=38em]{grapheg.png}\\
+        \caption{标书正文生成模块前端
+        }\label{content}
+    \end{figure}
 
     \xmusubsection{决策参考模块}{Decision-Making Reference Module}
     在标书生成报价部分，使用成本定价模型辅助用户进行投标决策。
@@ -715,12 +785,12 @@ RAG技术栈也越加丰富。LangChain和LLamalndex等大模型框架已经支�
 
     模板文档来自中华人民共和国标准施工招标文件（2007年版）
 
-    % \begin{figure}[!htb]
-    %     \centering
-    %     \includegraphics[width=38em]{grapheg.png}\\
-    %     \caption{生成文档效果
-    %     }\label{text}
-    % \end{figure}
+    \begin{figure}[!htb]
+        \centering
+        \includegraphics[width=38em]{grapheg.png}\\
+        \caption{生成文档效果
+        }\label{text}
+    \end{figure}
 \xmuchapter{总结与展望}{Conclusion and Future Work}
 本次设计实现的智能标书撰写系统，虽然功能上能够满足了标书撰写的基本需求，
 但对于标书生成的质量还有很大提示空间。
